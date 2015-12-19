@@ -10,7 +10,9 @@
  * 淘宝    ：http://firestm32.taobao.com
 *********************************************************************************/
 /* Includes ------------------------------------------------------------------*/
-#include <stm32f1xx_hal_conf.h>
+#include "stm32f1xx_hal.h"
+#include "system_stm32f1xx.h"
+
 #include "sdio_sdcard.h"
 #include "ff.h"
 #include "usually.h"
@@ -21,6 +23,7 @@
 #include "STDLIB.H"
 #include "ds1302.h"
 #include "rfidupan.h"
+#include "inttypes.h"
 
 #include "spi_enc28j60.h"
 #include "web_server.h"
@@ -32,14 +35,14 @@
 //显示结构体
 typedef struct _DISSTRUCT
 {
-   char Name[32];
-	 char UserID[32];
-	char UdiskInfo2[32];
-   char PhoneNum[32];
-	 char UdiskInfo[32];
-	 char UdiskState[32];
-   char Temperature[32];
-	 char TimeNow[32];
+    char Name[32];
+    char UserID[32];
+    char UdiskInfo2[32];
+    char PhoneNum[32];
+    char UdiskInfo[32];
+    char UdiskState[32];
+    char Temperature[32];
+    char TimeNow[32];
 
 }DISSTRUCT ;
 
@@ -54,7 +57,7 @@ DISSTRUCT LCDSTRUCT;
 void LCDUpdate(char stype);    //LCD显示
 void Init_LCDSTRUCT(void);
 
-void Time_Conv(u8 * tt,unsigned char cnt,char * timestr);  //日期时间
+void Time_Conv(uint8_t * tt,unsigned char cnt,char * timestr);  //日期时间
 char PcdRequest(unsigned char req_code,unsigned char *pTagType);
 void ncs(unsigned char cse);
 
@@ -79,7 +82,7 @@ int printallfile(unsigned char * filename );
 extern unsigned  int fill_tcp_data_p(unsigned char *buf,unsigned  int pos, const unsigned char *progmem_s);
 extern void SendTcp(unsigned int plen);
 // 全局变量定义区
-u8 bTemp;
+uint8_t bTemp;
 static unsigned char rfid1=0;
 static unsigned char rfid2=0;
 static unsigned char door_state=0;
@@ -121,228 +124,228 @@ int main(void)
 {
 
 
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-		** 变量定义
-		:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+     ** 变量定义
+     :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
-		u8 tt[7];
-	  char rfid_status;
+    uint8_t tt[7];
+    char rfid_status;
     unsigned char g_ucTempbuf[20];
 
-	  //unsigned char serialarraycheck[10]="1119241448";
-	  unsigned char namearray[20]="";
-	  int stread,stwrite=0;
-	  unsigned char strtmp[30]="";
+    //unsigned char serialarraycheck[10]="1119241448";
+    unsigned char namearray[20]="";
+    int stread,stwrite=0;
+    unsigned char strtmp[30]="";
 
 
 
-	/////////////////////////////////////////////////////////////////////////////////////////////////
-		/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-		** 初始化区域
-		:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-		SystemInit();					//系统时钟配置
-		Init_NVIC();					//中断向量表注册函数
-		NVIC_Configuration(); //SDIO中断处理初始化
-		Init_LED();						//各个外设引脚配置
-		Init_Usart();					//串口引脚配置
-		Usart_Configuration(USART1,115200);	//串口1配置 设置波特率为115200
-		Usart_Configuration(USART2,9600);	//串口2配置 设置波特率为115200
-		Usart_Configuration(USART3,115200);	//串口3配置 设置波特率为115200
-		Delay_Ms(200);        //等待200ms确保屏幕启动
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+     ** 初始化区域
+     :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    SystemInit();					//系统时钟配置
+    Init_NVIC();					//中断向量表注册函数
+    NVIC_Configuration(); //SDIO中断处理初始化
+    Init_LED();						//各个外设引脚配置
+    Init_Usart();					//串口引脚配置
+    Usart_Configuration(USART1,115200);	//串口1配置 设置波特率为115200
+    Usart_Configuration(USART2,9600);	//串口2配置 设置波特率为115200
+    Usart_Configuration(USART3,115200);	//串口3配置 设置波特率为115200
+    Delay_Ms(200);        //等待200ms确保屏幕启动
 
-		Init_LCDSTRUCT();
-	//	LCDUpdate('a');         //LCD显示
-		//LCDUpdate('n');
-		printf("start..\n\t");
+    Init_LCDSTRUCT();
+    //	LCDUpdate('a');         //LCD显示
+    //LCDUpdate('n');
+    printf("start..\n\t");
 
-		Cmd.SendFlag = 0;       //初始化RFID标志位
-		Cmd.ReceiveFlag = 0;
-		Picc.Value = 0;
-
-
-
-		InitClock();            //配置DS1302
-	// 	tt[0] = 0x15;
-	// 	tt[1] = 0x04;
-	// 	tt[2] = 0x27;
-	// 	tt[3] = 0x21;
-	// 	tt[4] = 0x05;
-	// 	tt[5] = 0x00;
-	// 	WriteDS1302Clock(tt);
-	//	for(i=1;i<3;i++)
-	//{
-		//Init_RfidUpan_GPIO();
-		//ncs(1);
-	 // Init_RfidUpan();
-		//ncs(2);
-	  //Init_RfidUpan();
-	//	Delay_Ms(20);
-	//}
-
-		Init_RfidUpan_GPIO();
+    Cmd.SendFlag = 0;       //初始化RFID标志位
+    Cmd.ReceiveFlag = 0;
+    Picc.Value = 0;
 
 
 
-	/* ENC28J60 SPI 接口初始化 */
-  SPI_Enc28j60_Init();//函数初始化
-	SetIpMac();
-	gflag_send=0;       //变量初始化
-  send_count=0;
-	/* 挂载文件系统*/
+    InitClock();            //配置DS1302
+    // 	tt[0] = 0x15;
+    // 	tt[1] = 0x04;
+    // 	tt[2] = 0x27;
+    // 	tt[3] = 0x21;
+    // 	tt[4] = 0x05;
+    // 	tt[5] = 0x00;
+    // 	WriteDS1302Clock(tt);
+    //	for(i=1;i<3;i++)
+    //{
+    //Init_RfidUpan_GPIO();
+    //ncs(1);
+    // Init_RfidUpan();
+    //ncs(2);
+    //Init_RfidUpan();
+    //	Delay_Ms(20);
+    //}
 
-	f_mount(0,&fs);
-  LCDShowUpanState(upanfilename);
-
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-		** 循环区域
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-		while(1)
-		{
-			ReadDS1302Clock(tt);
-			Time_Conv(tt,6,LCDSTRUCT.TimeNow);
-////////////////////////////////////////////////////////////////////////////////////	    	检测开箱
-			Web_Server();   //网络模块开始工作
-
-//////////////////////////////////////////////////////////////////////
-			bTemp = CommandProcess();
-			if(bTemp == 0)
-			{
-				//在这里开始你的操作
-				//所有有用数据在 Picc
-				//卡号	==>Picc.UID
-				//卡类型==>Picc.Type
-				//余额	==>Picc.Value
-				if(1)//door_state==0)
-				{
-					LongToStr(LCDSTRUCT.UserID,Picc.UID,10);
-					//LCDUpdate('a');
-					stread=checkserial(userfilename,LCDSTRUCT.UserID,namearray);
-					if(stread==-1)
-						strcpy(strtmp,"OPEN FILE ERROR");
-					else if(stread==0)
-					{
-						//strcpy(strtmp,"NOT FIND");
-						door_closed=1;
-					}
-					else if(stread>0)   	//比较是否是合法卡
-					{
-						door_state=1;				//开门
-						strcpy(strtmp,namearray);//显示姓名，提示关门
-						strcpy(LCDSTRUCT.Name,strtmp);
-					  LCDUpdate('a');
-					}
-					//strcpy(LCDSTRUCT.Name,strtmp);
-					//LCDUpdate('a');
-				}
-					//door_state=1;
-			}
-			else if(bTemp == 0xFF)
-			{
-				//无卡
-			}
-			else if(bTemp == 0xFE)
-			{
-				LCDUpdate('e');
-			}
-			else if(bTemp == 0xFD)
-			{
-				//参数错误
-			}
-
-///////////////////////////////////////////////////////////////////////////////////////				检测关门
-			if((door_state==1)&&(door_closed==1))
-			{
-    		door_state++;
-				rfid1=0;
-				rfid2=0;
-				//door_closed=0;
-				//LCDUpdate('a');
-			}
-///////////////////////////////////////////////////////////////////////////////////////   		检测u盘
-			if(door_state!=2){door_closed=0;continue;}
-
-			upanState=0x00;
-/////////////////////////////////////////////////////////////////////////////////////////			RFID2
-			if(rfid2==0)
-			{
-				ncs(2);//片选
-				Init_RfidUpan();
-				rfid_status = PcdRequest(PICC_REQALL,g_ucTempbuf);//扫描卡
-				printf("%02x  ",rfid_status);
-				if(rfid_status==0)
-				{
-					rfid_status = PcdAnticoll(g_ucTempbuf);//防冲撞
-					if(rfid_status==0)
-					{
-						Picc.UID = g_ucTempbuf[0];
-						Picc.UID <<= 8;
-						Picc.UID |= g_ucTempbuf[1];
-						Picc.UID <<= 8;
-						Picc.UID |= g_ucTempbuf[2];
-						Picc.UID <<= 8;
-						Picc.UID |= g_ucTempbuf[3];
-						if((Picc.UID-upanNum[0])==0)
-						{
-							upanState=upanState|0x01;
-							LongToStr(LCDSTRUCT.UdiskInfo,Picc.UID,10);strcat(LCDSTRUCT.UdiskInfo," (1)");
-						}
-						else if((Picc.UID-upanNum[1])==0)
-								{
-									upanState=upanState|0x02;
-									LongToStr(LCDSTRUCT.UdiskInfo2,Picc.UID,10);strcat(LCDSTRUCT.UdiskInfo2," (2)");
-								}
-						rfid2=1;
-					}
-				}
-			}
-///////////////////////////////////////////////////////////////////////////////////////////     	RFID1
-			if(rfid1==0)
-			{
-				ncs(1);
-				Init_RfidUpan();
-				rfid_status = PcdRequest(PICC_REQALL,g_ucTempbuf);//扫描卡
-				if(rfid_status==0)
-				{
-					rfid_status = PcdAnticoll(g_ucTempbuf);//防冲撞
-					if(rfid_status==0)
-					{
-						Picc.UID = g_ucTempbuf[0];
-						Picc.UID <<= 8;
-						Picc.UID |= g_ucTempbuf[1];
-						Picc.UID <<= 8;
-						Picc.UID |= g_ucTempbuf[2];
-						Picc.UID <<= 8;
-						Picc.UID |= g_ucTempbuf[3];
-						if(Picc.UID-upanNum[0]==0)
-						{
-							upanState=upanState|0x01;
-							LongToStr(LCDSTRUCT.UdiskInfo,Picc.UID,10);strcat(LCDSTRUCT.UdiskInfo," (1)");
-						}
-						else if(Picc.UID-upanNum[1]==0)
-								{
-									upanState=upanState|0x02;
-									LongToStr(LCDSTRUCT.UdiskInfo2,Picc.UID,10);strcat(LCDSTRUCT.UdiskInfo2," (2)");
-								}
-					rfid1=1;
-					}
-				}
-			}
-			door_state=0;
-///////////////////////////////////////////////////////////////////////////////////     显示状态
-			if((upanState&0x01)==0)
-			{
-				strcpy(LCDSTRUCT.UdiskInfo,strtmp);strcat(LCDSTRUCT.UdiskInfo," (1)");
-			}
-			if((upanState&0x02)==0)
-			{
-				strcpy(LCDSTRUCT.UdiskInfo2,strtmp);strcat(LCDSTRUCT.UdiskInfo2," (2)");
-			}
-			LCDUpdate('a');
+    Init_RfidUpan_GPIO();
 
 
 
+    /* ENC28J60 SPI 接口初始化 */
+    SPI_Enc28j60_Init();//函数初始化
+    SetIpMac();
+    gflag_send=0;       //变量初始化
+    send_count=0;
+    /* 挂载文件系统*/
 
-		}
+    f_mount(0,&fs);
+    LCDShowUpanState(upanfilename);
+
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+     ** 循环区域
+     :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    while(1)
+    {
+        ReadDS1302Clock(tt);
+        Time_Conv(tt,6,LCDSTRUCT.TimeNow);
+        ////////////////////////////////////////////////////////////////////////////////////	    	检测开箱
+        Web_Server();   //网络模块开始工作
+
+        //////////////////////////////////////////////////////////////////////
+        bTemp = CommandProcess();
+        if(bTemp == 0)
+        {
+            //在这里开始你的操作
+            //所有有用数据在 Picc
+            //卡号	==>Picc.UID
+            //卡类型==>Picc.Type
+            //余额	==>Picc.Value
+            if(1)//door_state==0)
+            {
+                LongToStr(LCDSTRUCT.UserID,Picc.UID,10);
+                //LCDUpdate('a');
+                stread=checkserial(userfilename,LCDSTRUCT.UserID,namearray);
+                if(stread==-1)
+                    strcpy(strtmp,"OPEN FILE ERROR");
+                else if(stread==0)
+                {
+                    //strcpy(strtmp,"NOT FIND");
+                    door_closed=1;
+                }
+                else if(stread>0)   	//比较是否是合法卡
+                {
+                    door_state=1;				//开门
+                    strcpy(strtmp,namearray);//显示姓名，提示关门
+                    strcpy(LCDSTRUCT.Name,strtmp);
+                    LCDUpdate('a');
+                }
+                //strcpy(LCDSTRUCT.Name,strtmp);
+                //LCDUpdate('a');
+            }
+            //door_state=1;
+        }
+        else if(bTemp == 0xFF)
+        {
+            //无卡
+        }
+        else if(bTemp == 0xFE)
+        {
+            LCDUpdate('e');
+        }
+        else if(bTemp == 0xFD)
+        {
+            //参数错误
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////////////				检测关门
+        if((door_state==1)&&(door_closed==1))
+        {
+            door_state++;
+            rfid1=0;
+            rfid2=0;
+            //door_closed=0;
+            //LCDUpdate('a');
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////   		检测u盘
+        if(door_state!=2){door_closed=0;continue;}
+
+        upanState=0x00;
+        /////////////////////////////////////////////////////////////////////////////////////////			RFID2
+        if(rfid2==0)
+        {
+            ncs(2);//片选
+            Init_RfidUpan();
+            rfid_status = PcdRequest(PICC_REQALL,g_ucTempbuf);//扫描卡
+            printf("%02x  ",rfid_status);
+            if(rfid_status==0)
+            {
+                rfid_status = PcdAnticoll(g_ucTempbuf);//防冲撞
+                if(rfid_status==0)
+                {
+                    Picc.UID = g_ucTempbuf[0];
+                    Picc.UID <<= 8;
+                    Picc.UID |= g_ucTempbuf[1];
+                    Picc.UID <<= 8;
+                    Picc.UID |= g_ucTempbuf[2];
+                    Picc.UID <<= 8;
+                    Picc.UID |= g_ucTempbuf[3];
+                    if((Picc.UID-upanNum[0])==0)
+                    {
+                        upanState=upanState|0x01;
+                        LongToStr(LCDSTRUCT.UdiskInfo,Picc.UID,10);strcat(LCDSTRUCT.UdiskInfo," (1)");
+                    }
+                    else if((Picc.UID-upanNum[1])==0)
+                    {
+                        upanState=upanState|0x02;
+                        LongToStr(LCDSTRUCT.UdiskInfo2,Picc.UID,10);strcat(LCDSTRUCT.UdiskInfo2," (2)");
+                    }
+                    rfid2=1;
+                }
+            }
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////////     	RFID1
+        if(rfid1==0)
+        {
+            ncs(1);
+            Init_RfidUpan();
+            rfid_status = PcdRequest(PICC_REQALL,g_ucTempbuf);//扫描卡
+            if(rfid_status==0)
+            {
+                rfid_status = PcdAnticoll(g_ucTempbuf);//防冲撞
+                if(rfid_status==0)
+                {
+                    Picc.UID = g_ucTempbuf[0];
+                    Picc.UID <<= 8;
+                    Picc.UID |= g_ucTempbuf[1];
+                    Picc.UID <<= 8;
+                    Picc.UID |= g_ucTempbuf[2];
+                    Picc.UID <<= 8;
+                    Picc.UID |= g_ucTempbuf[3];
+                    if(Picc.UID-upanNum[0]==0)
+                    {
+                        upanState=upanState|0x01;
+                        LongToStr(LCDSTRUCT.UdiskInfo,Picc.UID,10);strcat(LCDSTRUCT.UdiskInfo," (1)");
+                    }
+                    else if(Picc.UID-upanNum[1]==0)
+                    {
+                        upanState=upanState|0x02;
+                        LongToStr(LCDSTRUCT.UdiskInfo2,Picc.UID,10);strcat(LCDSTRUCT.UdiskInfo2," (2)");
+                    }
+                    rfid1=1;
+                }
+            }
+        }
+        door_state=0;
+        ///////////////////////////////////////////////////////////////////////////////////     显示状态
+        if((upanState&0x01)==0)
+        {
+            strcpy(LCDSTRUCT.UdiskInfo,strtmp);strcat(LCDSTRUCT.UdiskInfo," (1)");
+        }
+        if((upanState&0x02)==0)
+        {
+            strcpy(LCDSTRUCT.UdiskInfo2,strtmp);strcat(LCDSTRUCT.UdiskInfo2," (2)");
+        }
+        LCDUpdate('a');
+
+
+
+
+    }
 
 
 }
@@ -393,20 +396,20 @@ void Time_Conv(u8 * tt,unsigned char cnt,char * timestr)
 :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 void Init_LED()
 {
-	GPIO_InitTypeDef GPIO_InitStructure;					//定义一个GPIO结构体变量
+    GPIO_InitTypeDef GPIO_InitStructure;					//定义一个GPIO结构体变量
 
-	RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG,ENABLE);	//使能各个端口时钟，重要！！！
+    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG,ENABLE);	//使能各个端口时钟，重要！！！
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;										//配置LED端口挂接到6、12、13端口
-  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	   	//通用输出推挽
-  	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	   	//配置端口速度为50M
-  	GPIO_Init(GPIOG, &GPIO_InitStructure);				   	//根据参数初始化GPIOD寄存器RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG | RCC_APB2Periph_GPIOE,ENABLE);	//使能各个端口时钟，重要！！！
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;										//配置LED端口挂接到6、12、13端口
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	   	//通用输出推挽
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	   	//配置端口速度为50M
+    GPIO_Init(GPIOG, &GPIO_InitStructure);				   	//根据参数初始化GPIOD寄存器RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG | RCC_APB2Periph_GPIOE,ENABLE);	//使能各个端口时钟，重要！！！
 
-	RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD,ENABLE);	//使能各个端口时钟，重要！！！
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;										//配置LED端口挂接到6、12、13端口
-  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	   	//通用输出推挽
-  	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	   	//配置端口速度为50M
-  	GPIO_Init(GPIOD, &GPIO_InitStructure);				   	//根据参数初始化GPIOD寄存器
+    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD,ENABLE);	//使能各个端口时钟，重要！！！
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;										//配置LED端口挂接到6、12、13端口
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	   	//通用输出推挽
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	   	//配置端口速度为50M
+    GPIO_Init(GPIOD, &GPIO_InitStructure);				   	//根据参数初始化GPIOD寄存器
 
 
 }
