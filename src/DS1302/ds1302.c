@@ -3,7 +3,7 @@
 #define NOP() __NOP
 
 #define DS1302_CLK_H()	(GPIOE->BSRR=GPIO_PIN_4)
-#define DS1302_CLK_L()	(GPIOE->BRR=GPIO_PIN_4)
+#define DS1302_CLK_L()	(GPIOE->BRR=GPIO_PIN_4) //TODO: donot use BRR
 
 #define DS1302_RST_H()	(GPIOE->BSRR=GPIO_PIN_6)
 #define DS1302_RST_L()	(GPIOE->BRR=GPIO_PIN_6)
@@ -13,10 +13,10 @@
 
 #define DS1302_IN_X		(GPIOE->IDR&GPIO_PIN_5)
 
-#define Time_24_Hour	0x00	//24Ê±ÖÆ¿ØÖÆ
-#define Time_Start		0x00	//¿ªÊ¼×ßÊ±
+#define Time_24_Hour	0x00	//24æ—¶åˆ¶æ§åˆ¶
+#define Time_Start		0x00	//å¼€å§‹èµ°æ—¶
 
-#define DS1302_SECOND	0x80	//DS1302¸÷¼Ä´æÆ÷²Ù×÷ÃüÁî¶¨Òå
+#define DS1302_SECOND	0x80	//DS1302å„å¯„å­˜å™¨æ“ä½œå‘½ä»¤å®šä¹‰
 #define DS1302_MINUTE	0x82
 #define DS1302_HOUR		0x84
 #define DS1302_DAY		0x86
@@ -34,11 +34,11 @@ void DS1302_Configuration(void)
     __HAL_RCC_GPIOE_CLK_ENABLE();
 
 	GPIO_InitStructure.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6;
-	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;	//ÍÆÍìÊä³ö
-	GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;	//50MÊ±ÖÓËÙ¶È
+	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;	//æ¨æŒ½è¾“å‡º
+	GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;	//50Mæ—¶é’Ÿé€Ÿåº¦
 	HAL_GPIO_Init(GPIOE, &GPIO_InitStructure);
 
-	/* PE4,5,6Êä³ö */
+	/* PE4,5,6è¾“å‡º */
 	GPIO_ResetBits(GPIOE,GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6);
 }
 
@@ -74,7 +74,7 @@ void DS1302SendByte(uint8_t byte)
 		else
             DS1302_OUT_L();
 		DS1302_CLK_H();
-		DelayNOP(50);		//¼ÓÑÓÊ±
+		DelayNOP(50);		//åŠ å»¶æ—¶
 		DS1302_CLK_L();
 	}
 }
@@ -88,7 +88,7 @@ uint8_t DS1302ReceiveByte(void)
 		if(DS1302_IN_X)
             byte |= i;
 		DS1302_CLK_H();
-		DelayNOP(50);		//¼ÓÑÓÊ±
+		DelayNOP(50);		//åŠ å»¶æ—¶
 		DS1302_CLK_L();
 	}
 	return(byte);
@@ -124,7 +124,7 @@ uint8_t Read1302(uint8_t addr)
 	return(data);
 }
 
-//¶ÁÈ¡Ê±¼äº¯Êı
+//è¯»å–æ—¶é—´å‡½æ•°
 void DS1302_GetTime(uint8_t *time)
 {
 	//uint8_t tmp;
@@ -139,9 +139,9 @@ void DS1302_GetTime(uint8_t *time)
 }
 
 /*
-¶ÁÈ¡DS1302ÖĞµÄRAM
-addr:µØÖ·,´Ó0µ½30,¹²31¸ö×Ö½ÚµÄ¿Õ¼ä
-·µ»ØÎªËù¶ÁÈ¡µÄÊı¾İ
+è¯»å–DS1302ä¸­çš„RAM
+addr:åœ°å€,ä»0åˆ°30,å…±31ä¸ªå­—èŠ‚çš„ç©ºé—´
+è¿”å›ä¸ºæ‰€è¯»å–çš„æ•°æ®
 */
 uint8_t ReadDS1302Ram(uint8_t addr)
 {
@@ -153,18 +153,18 @@ uint8_t ReadDS1302Ram(uint8_t addr)
 }
 
 /*
-Ğ´DS1302ÖĞµÄRAM
-addr:µØÖ·,´Ó0µ½30,¹²31¸ö×Ö½ÚµÄ¿Õ¼ä
-data:ÒªĞ´µÄÊı¾İ
+å†™DS1302ä¸­çš„RAM
+addr:åœ°å€,ä»0åˆ°30,å…±31ä¸ªå­—èŠ‚çš„ç©ºé—´
+data:è¦å†™çš„æ•°æ®
 */
 void WriteDS1302Ram(uint8_t addr,uint8_t data)
 {
 	uint8_t	tmp;
 
-	Write1302(DS1302_WRITE,0x00);		//¹Ø±ÕĞ´±£»¤
+	Write1302(DS1302_WRITE,0x00);		//å…³é—­å†™ä¿æŠ¤
 	tmp = (addr<<1)|0xc0;
 	Write1302(tmp,data);
-	Write1302(DS1302_WRITE,0x80);		//´ò¿ªĞ´±£»¤
+	Write1302(DS1302_WRITE,0x80);		//æ‰“å¼€å†™ä¿æŠ¤
 }
 
 void ReadDSRam(uint8_t *p,uint8_t add,uint8_t cnt)
@@ -191,7 +191,7 @@ void WriteDSRam(uint8_t *p,uint8_t add,uint8_t cnt)
 }
 
 /*
-¶ÁÊ±¼äº¯Êı,Ë³ĞòÎª:ÄêÖÜÔÂÈÕÊ±·ÖÃë
+è¯»æ—¶é—´å‡½æ•°,é¡ºåºä¸º:å¹´å‘¨æœˆæ—¥æ—¶åˆ†ç§’
 */
 void ReadDS1302Clock(uint8_t *p)
 {
@@ -200,40 +200,40 @@ void ReadDS1302Clock(uint8_t *p)
 	DS1302_CLK_L();
 	DS1302_RST_H();
 	DelayNOP(100);
-	DS1302SendByte(0xbf);			//Í»·¢Ä£Ê½
+	DS1302SendByte(0xbf);			//çªå‘æ¨¡å¼
 	DS1302_IN();
-	p[5] = DS1302ReceiveByte();		//Ãë
-	p[4] = DS1302ReceiveByte();		//·Ö
-	p[3] = DS1302ReceiveByte();		//Ê±
-	p[2] = DS1302ReceiveByte();		//ÈÕ
-	p[1] = DS1302ReceiveByte();		//ÔÂ
-	DS1302ReceiveByte();			//ÖÜ
-	p[0] = DS1302ReceiveByte();		//Äê
-	DS1302ReceiveByte();			//±£»¤±êÖ¾×Ö½Ú
+	p[5] = DS1302ReceiveByte();		//ç§’
+	p[4] = DS1302ReceiveByte();		//åˆ†
+	p[3] = DS1302ReceiveByte();		//æ—¶
+	p[2] = DS1302ReceiveByte();		//æ—¥
+	p[1] = DS1302ReceiveByte();		//æœˆ
+	DS1302ReceiveByte();			//å‘¨
+	p[0] = DS1302ReceiveByte();		//å¹´
+	DS1302ReceiveByte();			//ä¿æŠ¤æ ‡å¿—å­—èŠ‚
 	DelayNOP(100);
 	DS1302_RST_L();
 }
 
 /*
-Ğ´Ê±¼äº¯Êı,Ë³ĞòÎª:ÄêÖÜÔÂÈÕÊ±·ÖÃë
+å†™æ—¶é—´å‡½æ•°,é¡ºåºä¸º:å¹´å‘¨æœˆæ—¥æ—¶åˆ†ç§’
 */
 void WriteDS1302Clock(uint8_t *p)
 {
-	Write1302(DS1302_WRITE,0x00);		//¹Ø±ÕĞ´±£»¤
+	Write1302(DS1302_WRITE,0x00);		//å…³é—­å†™ä¿æŠ¤
 	DS1302_OUT();
 	DS1302_RST_L();
 	DS1302_CLK_L();
 	DS1302_RST_H();
 	DelayNOP(100);
-	DS1302SendByte(0xbe);				//Í»·¢Ä£Ê½
-	DS1302SendByte(p[5]);				//Ãë
-	DS1302SendByte(p[4]);				//·Ö
-	DS1302SendByte(p[3]);				//Ê±
-	DS1302SendByte(p[2]);				//ÈÕ
-	DS1302SendByte(p[1]);				//ÔÂ
-	DS1302SendByte(0x01);				//ÖÜ£¬ÉèÖÃ³ÉÖÜÒ»£¬Ã»ÓĞÊ¹ÓÃ
-	DS1302SendByte(p[0]);				//Äê
-	DS1302SendByte(0x80);				//±£»¤±êÖ¾×Ö½Ú
+	DS1302SendByte(0xbe);				//çªå‘æ¨¡å¼
+	DS1302SendByte(p[5]);				//ç§’
+	DS1302SendByte(p[4]);				//åˆ†
+	DS1302SendByte(p[3]);				//æ—¶
+	DS1302SendByte(p[2]);				//æ—¥
+	DS1302SendByte(p[1]);				//æœˆ
+	DS1302SendByte(0x01);				//å‘¨ï¼Œè®¾ç½®æˆå‘¨ä¸€ï¼Œæ²¡æœ‰ä½¿ç”¨
+	DS1302SendByte(p[0]);				//å¹´
+	DS1302SendByte(0x80);				//ä¿æŠ¤æ ‡å¿—å­—èŠ‚
 	DelayNOP(100);
 	DS1302_RST_L();
 }
@@ -246,11 +246,11 @@ void InitClock(void)
 	if(tmp^0xa5)
 	{
 		WriteDS1302Ram(0,0xa5);
-		Write1302(DS1302_WRITE,0x00);		//¹Ø±ÕĞ´±£»¤
-		Write1302(0x90,0x03);				//½ûÖ¹ä¸Á÷³äµç
-		Write1302(DS1302_HOUR,0x00);		//ÉèÖÃ³É24Ğ¡Ê±ÖÆ
-		Write1302(DS1302_SECOND,0x00);		//Ê¹ÄÜÊ±ÖÓÔËĞĞ
-		Write1302(DS1302_WRITE,0x80);		//´ò¿ªĞ´±£»¤
+		Write1302(DS1302_WRITE,0x00);		//å…³é—­å†™ä¿æŠ¤
+		Write1302(0x90,0x03);				//ç¦æ­¢æ¶“æµå……ç”µ
+		Write1302(DS1302_HOUR,0x00);		//è®¾ç½®æˆ24å°æ—¶åˆ¶
+		Write1302(DS1302_SECOND,0x00);		//ä½¿èƒ½æ—¶é’Ÿè¿è¡Œ
+		Write1302(DS1302_WRITE,0x80);		//æ‰“å¼€å†™ä¿æŠ¤
 	}
 }
 /*
