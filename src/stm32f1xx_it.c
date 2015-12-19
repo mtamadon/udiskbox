@@ -5,7 +5,7 @@
   * @version V1.2.0
   * @date    31-July-2015
   * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all exceptions handler and 
+  *          This file provides template for all exceptions handler and
   *          peripherals interrupt service routine.
   ******************************************************************************
   * @attention
@@ -38,9 +38,8 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
 #include "stm32f1xx_it.h"
-   
+
 /** @addtogroup STM32F1xx_HAL_Examples
   * @{
   */
@@ -178,7 +177,7 @@ void SysTick_Handler(void)
 
 /**
   * @}
-  */ 
+  */
 
 /**
   * @}

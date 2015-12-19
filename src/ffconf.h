@@ -6,10 +6,10 @@
 #define _FFCONF 32020	/* Revision ID */
 
 /*-----------------------------------------------------------------------------/
-/ Additional user header to be used  
+/ Additional user header to be used
 /-----------------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
-#include "stm3210e_eval_sd.h"
+//#include "stm3210e_eval_sd.h"
 /*-----------------------------------------------------------------------------/
 / Functions and Buffer Configurations
 /---------------------------------------------------------------------------*/
@@ -78,7 +78,7 @@
 /  before being processed by the DMA . Otherwise (DMA not used), this define must
 /  be set to 1 to avoid Data alignment and improve the performance.
 /  Please note that if _USE_BUFF_WO_ALIGNMENT is set to 1 and an unaligned 32bits
-/  buffer is forwarded to the FatFs Write/Read functions, an error will be returned. 
+/  buffer is forwarded to the FatFs Write/Read functions, an error will be returned.
 /  (0: default value or 1: unaligned buffer return an error). */
 
 
@@ -230,7 +230,7 @@
 /  defined by _NORTC_MON, _NORTC_MDAY and _NORTC_YEAR.
 /  When timestamp feature is enabled (_FS_NORTC	== 0), get_fattime() function need
 /  to be added to the project to read current time form RTC. _NORTC_MON,
-/  _NORTC_MDAY and _NORTC_YEAR have no effect. 
+/  _NORTC_MDAY and _NORTC_YEAR have no effect.
 /  These options have no effect at read-only configuration (_FS_READONLY == 1). */
 
 

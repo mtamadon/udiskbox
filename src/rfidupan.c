@@ -8,17 +8,17 @@
 
 static unsigned char csh;
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£ºÑ°¿¨
-//²ÎÊıËµÃ÷: req_code[IN]:Ñ°¿¨·½Ê½
-//                0x52 = Ñ°¸ĞÓ¦ÇøÄÚËùÓĞ·ûºÏ14443A±ê×¼µÄ¿¨
-//                0x26 = Ñ°Î´½øÈëĞİÃß×´Ì¬µÄ¿¨
-//          	  pTagType[OUT]£º¿¨Æ¬ÀàĞÍ´úÂë
+//åŠŸ    èƒ½ï¼šå¯»å¡
+//å‚æ•°è¯´æ˜: req_code[IN]:å¯»å¡æ–¹å¼
+//                0x52 = å¯»æ„Ÿåº”åŒºå†…æ‰€æœ‰ç¬¦åˆ14443Aæ ‡å‡†çš„å¡
+//                0x26 = å¯»æœªè¿›å…¥ä¼‘çœ çŠ¶æ€çš„å¡
+//          	  pTagType[OUT]ï¼šå¡ç‰‡ç±»å‹ä»£ç 
 //                0x4400 = Mifare_UltraLight
 //                0x0400 = Mifare_One(S50)
 //                0x0200 = Mifare_One(S70)
 //                0x0800 = Mifare_Pro(X)
 //                0x4403 = Mifare_DESFire
-//·µ    »Ø: ³É¹¦·µ»ØMI_OK
+//è¿”    å›: æˆåŠŸè¿”å›MI_OK
 /////////////////////////////////////////////////////////////////////
 char PcdRequest(unsigned char req_code,unsigned char *pTagType)
 {
@@ -56,9 +56,9 @@ char PcdRequest(unsigned char req_code,unsigned char *pTagType)
 }
 
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£º·À³å×²
-//²ÎÊıËµÃ÷: pSnr[OUT]:¿¨Æ¬ĞòÁĞºÅ£¬4×Ö½Ú
-//·µ    »Ø: ³É¹¦·µ»ØMI_OK
+//åŠŸ    èƒ½ï¼šé˜²å†²æ’
+//å‚æ•°è¯´æ˜: pSnr[OUT]:å¡ç‰‡åºåˆ—å·ï¼Œ4å­—èŠ‚
+//è¿”    å›: æˆåŠŸè¿”å›MI_OK
 /////////////////////////////////////////////////////////////////////
 char PcdAnticoll(unsigned char *pSnr)
 {
@@ -93,9 +93,9 @@ char PcdAnticoll(unsigned char *pSnr)
 }
 
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£ºÑ¡¶¨¿¨Æ¬
-//²ÎÊıËµÃ÷: pSnr[IN]:¿¨Æ¬ĞòÁĞºÅ£¬4×Ö½Ú
-//·µ    »Ø: ³É¹¦·µ»ØMI_OK
+//åŠŸ    èƒ½ï¼šé€‰å®šå¡ç‰‡
+//å‚æ•°è¯´æ˜: pSnr[IN]:å¡ç‰‡åºåˆ—å·ï¼Œ4å­—èŠ‚
+//è¿”    å›: æˆåŠŸè¿”å›MI_OK
 /////////////////////////////////////////////////////////////////////
 char PcdSelect(unsigned char *pSnr)
 {
@@ -127,14 +127,14 @@ char PcdSelect(unsigned char *pSnr)
 }
 
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£ºÑéÖ¤¿¨Æ¬ÃÜÂë
-//²ÎÊıËµÃ÷: auth_mode[IN]: ÃÜÂëÑéÖ¤Ä£Ê½
-//                 0x60 = ÑéÖ¤AÃÜÔ¿
-//                 0x61 = ÑéÖ¤BÃÜÔ¿
-//          addr[IN]£º¿éµØÖ·
-//          pKey[IN]£ºÃÜÂë
-//          pSnr[IN]£º¿¨Æ¬ĞòÁĞºÅ£¬4×Ö½Ú
-//·µ    »Ø: ³É¹¦·µ»ØMI_OK
+//åŠŸ    èƒ½ï¼šéªŒè¯å¡ç‰‡å¯†ç 
+//å‚æ•°è¯´æ˜: auth_mode[IN]: å¯†ç éªŒè¯æ¨¡å¼
+//                 0x60 = éªŒè¯Aå¯†é’¥
+//                 0x61 = éªŒè¯Bå¯†é’¥
+//          addr[IN]ï¼šå—åœ°å€
+//          pKey[IN]ï¼šå¯†ç 
+//          pSnr[IN]ï¼šå¡ç‰‡åºåˆ—å·ï¼Œ4å­—èŠ‚
+//è¿”    å›: æˆåŠŸè¿”å›MI_OK
 /////////////////////////////////////////////////////////////////////
 char PcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr)
 {
@@ -159,10 +159,10 @@ char PcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned char *pKey
 }
 
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£º¶ÁÈ¡M1¿¨Ò»¿éÊı¾İ
-//²ÎÊıËµÃ÷: addr[IN]£º¿éµØÖ·
-//          pData[OUT]£º¶Á³öµÄÊı¾İ£¬16×Ö½Ú
-//·µ    »Ø: ³É¹¦·µ»ØMI_OK
+//åŠŸ    èƒ½ï¼šè¯»å–M1å¡ä¸€å—æ•°æ®
+//å‚æ•°è¯´æ˜: addr[IN]ï¼šå—åœ°å€
+//          pData[OUT]ï¼šè¯»å‡ºçš„æ•°æ®ï¼Œ16å­—èŠ‚
+//è¿”    å›: æˆåŠŸè¿”å›MI_OK
 /////////////////////////////////////////////////////////////////////
 char PcdRead(unsigned char addr,unsigned char *pData)
 {
@@ -188,10 +188,10 @@ char PcdRead(unsigned char addr,unsigned char *pData)
 }
 
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£ºĞ´Êı¾İµ½M1¿¨Ò»¿é
-//²ÎÊıËµÃ÷: addr[IN]£º¿éµØÖ·
-//          pData[IN]£ºĞ´ÈëµÄÊı¾İ£¬16×Ö½Ú
-//·µ    »Ø: ³É¹¦·µ»ØMI_OK
+//åŠŸ    èƒ½ï¼šå†™æ•°æ®åˆ°M1å¡ä¸€å—
+//å‚æ•°è¯´æ˜: addr[IN]ï¼šå—åœ°å€
+//          pData[IN]ï¼šå†™å…¥çš„æ•°æ®ï¼Œ16å­—èŠ‚
+//è¿”    å›: æˆåŠŸè¿”å›MI_OK
 /////////////////////////////////////////////////////////////////////
 char PcdWrite(unsigned char addr,unsigned char *pData)
 {
@@ -227,8 +227,8 @@ char PcdWrite(unsigned char addr,unsigned char *pData)
 
 
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£ºÃüÁî¿¨Æ¬½øÈëĞİÃß×´Ì¬
-//·µ    »Ø: ³É¹¦·µ»ØMI_OK
+//åŠŸ    èƒ½ï¼šå‘½ä»¤å¡ç‰‡è¿›å…¥ä¼‘çœ çŠ¶æ€
+//è¿”    å›: æˆåŠŸè¿”å›MI_OK
 /////////////////////////////////////////////////////////////////////
 char PcdHalt(void)
 {
@@ -245,7 +245,7 @@ char PcdHalt(void)
 }
 
 /////////////////////////////////////////////////////////////////////
-//ÓÃMF522¼ÆËãCRC16º¯Êı
+//ç”¨MF522è®¡ç®—CRC16å‡½æ•°
 /////////////////////////////////////////////////////////////////////
 void CalulateCRC(unsigned char *pIndata,unsigned char len,unsigned char *pOutData)
 {
@@ -268,8 +268,8 @@ void CalulateCRC(unsigned char *pIndata,unsigned char len,unsigned char *pOutDat
 }
 
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£º¸´Î»RC522
-//·µ    »Ø: ³É¹¦·µ»ØMI_OK
+//åŠŸ    èƒ½ï¼šå¤ä½RC522
+//è¿”    å›: æˆåŠŸè¿”å›MI_OK
 /////////////////////////////////////////////////////////////////////
 char PcdReset(void)
 {
@@ -294,7 +294,7 @@ char PcdReset(void)
 
     WriteRawRC(CommandReg,PCD_RESETPHASE);
 
-    WriteRawRC(ModeReg,0x3D);            //ºÍMifare¿¨Í¨Ñ¶£¬CRC³õÊ¼Öµ0x6363
+    WriteRawRC(ModeReg,0x3D);            //å’ŒMifareå¡é€šè®¯ï¼ŒCRCåˆå§‹å€¼0x6363
     WriteRawRC(TReloadRegL,30);
     WriteRawRC(TReloadRegH,0);
     WriteRawRC(TModeReg,0x8D);
@@ -303,7 +303,7 @@ char PcdReset(void)
     return MI_OK;
 }
 //////////////////////////////////////////////////////////////////////
-//ÉèÖÃRC632µÄ¹¤×÷·½Ê½
+//è®¾ç½®RC632çš„å·¥ä½œæ–¹å¼
 //////////////////////////////////////////////////////////////////////
 char M500PcdConfigISOType(unsigned char type)
 {
@@ -353,9 +353,9 @@ char M500PcdConfigISOType(unsigned char type)
    return MI_OK;
 }
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£º¶ÁRC632¼Ä´æÆ÷
-//²ÎÊıËµÃ÷£ºAddress[IN]:¼Ä´æÆ÷µØÖ·
-//·µ    »Ø£º¶Á³öµÄÖµ
+//åŠŸ    èƒ½ï¼šè¯»RC632å¯„å­˜å™¨
+//å‚æ•°è¯´æ˜ï¼šAddress[IN]:å¯„å­˜å™¨åœ°å€
+//è¿”    å›ï¼šè¯»å‡ºçš„å€¼
 /////////////////////////////////////////////////////////////////////
 unsigned char ReadRawRC(unsigned char Address)
 {
@@ -391,9 +391,9 @@ unsigned char ReadRawRC(unsigned char Address)
 }
 
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£ºĞ´RC632¼Ä´æÆ÷
-//²ÎÊıËµÃ÷£ºAddress[IN]:¼Ä´æÆ÷µØÖ·
-//          value[IN]:Ğ´ÈëµÄÖµ
+//åŠŸ    èƒ½ï¼šå†™RC632å¯„å­˜å™¨
+//å‚æ•°è¯´æ˜ï¼šAddress[IN]:å¯„å­˜å™¨åœ°å€
+//          value[IN]:å†™å…¥çš„å€¼
 /////////////////////////////////////////////////////////////////////
 void WriteRawRC(unsigned char Address, unsigned char value)
 {
@@ -429,9 +429,9 @@ void WriteRawRC(unsigned char Address, unsigned char value)
 }
 
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£ºÖÃRC522¼Ä´æÆ÷Î»
-//²ÎÊıËµÃ÷£ºreg[IN]:¼Ä´æÆ÷µØÖ·
-//          mask[IN]:ÖÃÎ»Öµ
+//åŠŸ    èƒ½ï¼šç½®RC522å¯„å­˜å™¨ä½
+//å‚æ•°è¯´æ˜ï¼šreg[IN]:å¯„å­˜å™¨åœ°å€
+//          mask[IN]:ç½®ä½å€¼
 /////////////////////////////////////////////////////////////////////
 void SetBitMask(unsigned char reg,unsigned char mask)
 {
@@ -441,9 +441,9 @@ void SetBitMask(unsigned char reg,unsigned char mask)
 }
 
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£ºÇåRC522¼Ä´æÆ÷Î»
-//²ÎÊıËµÃ÷£ºreg[IN]:¼Ä´æÆ÷µØÖ·
-//          mask[IN]:ÇåÎ»Öµ
+//åŠŸ    èƒ½ï¼šæ¸…RC522å¯„å­˜å™¨ä½
+//å‚æ•°è¯´æ˜ï¼šreg[IN]:å¯„å­˜å™¨åœ°å€
+//          mask[IN]:æ¸…ä½å€¼
 /////////////////////////////////////////////////////////////////////
 void ClearBitMask(unsigned char reg,unsigned char mask)
 {
@@ -453,12 +453,12 @@ void ClearBitMask(unsigned char reg,unsigned char mask)
 }
 
 /////////////////////////////////////////////////////////////////////
-//¹¦    ÄÜ£ºÍ¨¹ıRC522ºÍISO14443¿¨Í¨Ñ¶
-//²ÎÊıËµÃ÷£ºCommand[IN]:RC522ÃüÁî×Ö
-//          pInData[IN]:Í¨¹ıRC522·¢ËÍµ½¿¨Æ¬µÄÊı¾İ
-//          InLenByte[IN]:·¢ËÍÊı¾İµÄ×Ö½Ú³¤¶È
-//          pOutData[OUT]:½ÓÊÕµ½µÄ¿¨Æ¬·µ»ØÊı¾İ
-//          *pOutLenBit[OUT]:·µ»ØÊı¾İµÄÎ»³¤¶È
+//åŠŸ    èƒ½ï¼šé€šè¿‡RC522å’ŒISO14443å¡é€šè®¯
+//å‚æ•°è¯´æ˜ï¼šCommand[IN]:RC522å‘½ä»¤å­—
+//          pInData[IN]:é€šè¿‡RC522å‘é€åˆ°å¡ç‰‡çš„æ•°æ®
+//          InLenByte[IN]:å‘é€æ•°æ®çš„å­—èŠ‚é•¿åº¦
+//          pOutData[OUT]:æ¥æ”¶åˆ°çš„å¡ç‰‡è¿”å›æ•°æ®
+//          *pOutLenBit[OUT]:è¿”å›æ•°æ®çš„ä½é•¿åº¦
 /////////////////////////////////////////////////////////////////////
 char PcdComMF522(unsigned char Command,
                  unsigned char *pInData,
@@ -499,7 +499,7 @@ char PcdComMF522(unsigned char Command,
     if (Command == PCD_TRANSCEIVE)
     {    SetBitMask(BitFramingReg,0x80);  }
 
-//    i = 600;//¸ù¾İÊ±ÖÓÆµÂÊµ÷Õû£¬²Ù×÷M1¿¨×î´óµÈ´ıÊ±¼ä25ms
+//    i = 600;//æ ¹æ®æ—¶é’Ÿé¢‘ç‡è°ƒæ•´ï¼Œæ“ä½œM1å¡æœ€å¤§ç­‰å¾…æ—¶é—´25ms
  i = 2000;
     do
     {
@@ -545,8 +545,8 @@ char PcdComMF522(unsigned char Command,
 
 
 /////////////////////////////////////////////////////////////////////
-//¿ªÆôÌìÏß
-//Ã¿´ÎÆô¶¯»ò¹Ø±ÕÌìÏÕ·¢ÉäÖ®¼äÓ¦ÖÁÉÙÓĞ1msµÄ¼ä¸ô
+//å¼€å¯å¤©çº¿
+//æ¯æ¬¡å¯åŠ¨æˆ–å…³é—­å¤©é™©å‘å°„ä¹‹é—´åº”è‡³å°‘æœ‰1msçš„é—´éš”
 /////////////////////////////////////////////////////////////////////
 void PcdAntennaOn()
 {
@@ -560,14 +560,14 @@ void PcdAntennaOn()
 
 
 /////////////////////////////////////////////////////////////////////
-//¹Ø±ÕÌìÏß
+//å…³é—­å¤©çº¿
 /////////////////////////////////////////////////////////////////////
 void PcdAntennaOff()
 {
     ClearBitMask(TxControlReg, 0x03);
 }
 
-//µÈ´ı¿¨Àë¿ª
+//ç­‰å¾…å¡ç¦»å¼€
 void WaitCardOff(void)
 {
 	char          status;
@@ -610,66 +610,58 @@ void Init_RfidUpan_GPIO()
   GPIO_InitTypeDef  GPIO_InitStructure;
 
   /* Enable the GPIO Clock */
-  RCC_APB2PeriphClockCmd(MF522_RST_CLK, ENABLE);
-
+  /*RCC_APB2PeriphClockCmd(MF522_RST_CLK, ENABLE);*/
+  __HAL_RCC_MF522_RST_PORT_CLK_ENABLE();
   /* Configure the GPIO pin */
-  GPIO_InitStructure.GPIO_Pin = MF522_RST_PIN;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.Pin = MF522_RST_PIN;
+  GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
 
-  GPIO_Init(MF522_RST_PORT, &GPIO_InitStructure);
+  HAL_GPIO_Init(MF522_RST_PORT, &GPIO_InitStructure);
 
   /* Enable the GPIO Clock */
-  RCC_APB2PeriphClockCmd(MF522_MISO_CLK, ENABLE);
+  /*RCC_APB2PeriphClockCmd(MF522_MISO_CLK, ENABLE);*/
+  __HAL_RCC_MF522_MISO_PORT_CLK_ENABLE();
 
   /* Configure the GPIO pin */
-  GPIO_InitStructure.GPIO_Pin = MF522_MISO_PIN;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.Pin = MF522_MISO_PIN;
+  GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
 
-  GPIO_Init(MF522_MISO_PORT, &GPIO_InitStructure);
+  HAL_GPIO_Init(MF522_MISO_PORT, &GPIO_InitStructure);
 
   /* Enable the GPIO Clock */
-  RCC_APB2PeriphClockCmd(MF522_MOSI_CLK, ENABLE);
+  /*RCC_APB2PeriphClockCmd(MF522_MOSI_CLK, ENABLE);*/
+  __HAL_RCC_MF522_MOSI_PORT_CLK_ENABLE();
 
   /* Configure the GPIO pin */
-  GPIO_InitStructure.GPIO_Pin = MF522_MOSI_PIN;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.Pin = MF522_MOSI_PIN;
+  GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
 
-  GPIO_Init(MF522_MOSI_PORT, &GPIO_InitStructure);
+  HAL_GPIO_Init(MF522_MOSI_PORT, &GPIO_InitStructure);
 
   /* Enable the GPIO Clock */
-  RCC_APB2PeriphClockCmd(MF522_SCK_CLK, ENABLE);
+  /*RCC_APB2PeriphClockCmd(MF522_SCK_CLK, ENABLE);*/
+  __HAL_RCC_MF522_SCK_PORT_CLK_ENABLE();
 
   /* Configure the GPIO pin */
-  GPIO_InitStructure.GPIO_Pin = MF522_SCK_PIN;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.Pin = MF522_SCK_PIN;
+  GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
 
-  GPIO_Init(MF522_SCK_PORT, &GPIO_InitStructure);
+  HAL_GPIO_Init(MF522_SCK_PORT, &GPIO_InitStructure);
 
   /* Enable the GPIO Clock */
-  RCC_APB2PeriphClockCmd(MF522_NSS_CLK, ENABLE);
+  /*RCC_APB2PeriphClockCmd(MF522_NSS_CLK, ENABLE);*/
+  __HAL_RCC_MF522_NSS_PORT_CLK_ENABLE();
 
   /* Configure the GPIO pin */
-  GPIO_InitStructure.GPIO_Pin = MF522_NSS_PIN;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.Pin = MF522_NSS_PIN;
+  GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
 
-  GPIO_Init(MF522_NSS_PORT, &GPIO_InitStructure);
-////////////////////////////////////////////////////////////////////////////////////new
-	 /* Enable the GPIO Clock */
-  RCC_APB2PeriphClockCmd(MF522_NSS_CLK, ENABLE);
-
-  /* Configure the GPIO pin */
-  GPIO_InitStructure.GPIO_Pin = GPIO_PIN_7|GPIO_Pin_5|GPIO_Pin_6;
-  GPIO_InitStructure.GPIO_Pin = GPIO_PIN_7|GPIO_Pin_5|GPIO_Pin_6;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
-
-  GPIO_Init(MF522_NSS_PORT, &GPIO_InitStructure);
-//////////////////////////////////////////////////////////////////////////////////
+  HAL_GPIO_Init(MF522_NSS_PORT, &GPIO_InitStructure);
 }
 
 void Init_RfidUpan()
@@ -692,23 +684,23 @@ void Init_RfidUpan()
 
 void ncs_h(unsigned char cs)
 {
-		switch(cs)
-		{
-			case 0x01:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_4);break;
-			case 0x01:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_4);break;
-			case 0x02:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_5);break;
-			case 0x02:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_5);break;
-			case 0x03:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_6);break;
-			case 0x03:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_6);break;
-			case 0x04:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_7);break;
-			case 0x04:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_7);break;
-		}
+    switch(cs)
+    {
+        case 0x01:HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4| GPIO_PIN_5| GPIO_PIN_6| GPIO_PIN_7, GPIO_PIN_RESET);
+                  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);break;
+        case 0x02:HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4| GPIO_PIN_5| GPIO_PIN_6| GPIO_PIN_7, GPIO_PIN_RESET);
+                  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_5, GPIO_PIN_SET);break;
+        case 0x03:HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4| GPIO_PIN_5| GPIO_PIN_6| GPIO_PIN_7, GPIO_PIN_RESET);
+                  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_6, GPIO_PIN_SET);break;
+        case 0x04:HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4| GPIO_PIN_5| GPIO_PIN_6| GPIO_PIN_7, GPIO_PIN_RESET);
+                  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_SET);break;
+    }
 }
 
 void ncs_l(void)
 {
-		GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);
-		GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4 | GPIO_PIN_5| GPIO_PIN_6| GPIO_PIN_7, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4 | GPIO_PIN_5| GPIO_PIN_6| GPIO_PIN_7, GPIO_PIN_RESET);
 }
 
 void ncs(unsigned char cse)
@@ -716,13 +708,13 @@ void ncs(unsigned char cse)
 	csh=cse;
 	switch(cse)
 		{
-			case 0x01:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_4);break;
-			case 0x01:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_4);break;
-			case 0x02:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_5);break;
-			case 0x02:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_5);break;
-			case 0x03:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_6);break;
-			case 0x03:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_6);break;
-			case 0x04:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_7);break;
-			case 0x04:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_7);break;
+			case 0x01:HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4| GPIO_PIN_5| GPIO_PIN_6| GPIO_PIN_7, GPIO_PIN_RESET);
+                      HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4, GPIO_PIN_SET);break;
+			case 0x02:HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4| GPIO_PIN_5| GPIO_PIN_6| GPIO_PIN_7, GPIO_PIN_RESET);
+                      HAL_GPIO_WritePin(GPIOD, GPIO_PIN_5, GPIO_PIN_SET);break;
+			case 0x03:HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4| GPIO_PIN_5| GPIO_PIN_6| GPIO_PIN_7, GPIO_PIN_RESET);
+                      HAL_GPIO_WritePin(GPIOD, GPIO_PIN_6, GPIO_PIN_SET);break;
+			case 0x04:HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4| GPIO_PIN_5| GPIO_PIN_6| GPIO_PIN_7, GPIO_PIN_RESET);
+                      HAL_GPIO_WritePin(GPIOD, GPIO_PIN_7, GPIO_PIN_SET);break;
 		}
 }

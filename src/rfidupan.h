@@ -1,59 +1,53 @@
 #ifndef __RFIDUPAN_H
 #define __RFIDUPAN_H
 
-//Í·ÎÄ¼ş°üº¬
+//å¤´æ–‡ä»¶åŒ…å«
 #include "stdio.h"
 #include <string.h>
-#include <stm32f1xx_hal_conf.h>
+#include <stm32f1xx_hal.h>
 //////////////////////////////////
-//¶Ë¿Ú¶¨Òå
+//ç«¯å£å®šä¹‰
 /////////////////////////////////////////////////////////////////////
 //MFRC522
-#define MF522_RST_PIN                    GPIO_PIN_0
 #define MF522_RST_PIN                    GPIO_PIN_0
 #define MF522_RST_PORT                   GPIOD
 #define MF522_RST_CLK                    RCC_APB2Periph_GPIOD
 
 #define MF522_MISO_PIN                   GPIO_PIN_1
-#define MF522_MISO_PIN                   GPIO_PIN_1
 #define MF522_MISO_PORT                  GPIOD
 #define MF522_MISO_CLK                   RCC_APB2Periph_GPIOD
 
-#define MF522_MOSI_PIN                   GPIO_PIN_7
 #define MF522_MOSI_PIN                   GPIO_PIN_7
 #define MF522_MOSI_PORT                  GPIOD
 #define MF522_MOSI_CLK                   RCC_APB2Periph_GPIOD
 
 #define MF522_SCK_PIN                    GPIO_PIN_3
-#define MF522_SCK_PIN                    GPIO_PIN_3
 #define MF522_SCK_PORT                   GPIOD
 #define MF522_SCK_CLK                    RCC_APB2Periph_GPIOD
 
 #define MF522_NSS_PIN                    GPIO_PIN_4
-#define MF522_NSS_PIN                    GPIO_PIN_4
 #define MF522_NSS_PORT                   GPIOD
 #define MF522_NSS_CLK                    RCC_APB2Periph_GPIOD
 
-//Ö¸Ê¾µÆ
-#define LED_PIN                          GPIO_PIN_14
+//æŒ‡ç¤ºç¯
 #define LED_PIN                          GPIO_PIN_14
 #define LED_PORT                         GPIOG
 #define LED_CLK                          RCC_APB2Periph_GPIOG
 
 
-#define RST_H                            GPIO_SetBits(MF522_RST_PORT, MF522_RST_PIN)
-#define RST_L                            GPIO_ResetBits(MF522_RST_PORT, MF522_RST_PIN)
-#define MOSI_H                           GPIO_SetBits(MF522_MOSI_PORT, MF522_MOSI_PIN)
-#define MOSI_L                           GPIO_ResetBits(MF522_MOSI_PORT, MF522_MOSI_PIN)
-#define SCK_H                            GPIO_SetBits(MF522_SCK_PORT, MF522_SCK_PIN)
-#define SCK_L                            GPIO_ResetBits(MF522_SCK_PORT, MF522_SCK_PIN)
-#define NSS_H                            GPIO_SetBits(MF522_NSS_PORT, MF522_NSS_PIN)
-#define NSS_L                            GPIO_ResetBits(MF522_NSS_PORT, MF522_NSS_PIN)
-#define READ_MISO                        GPIO_ReadInputDataBit(MF522_MISO_PORT, MF522_MISO_PIN)
-#define LED_ON                           GPIO_SetBits(LED_PORT, LED_PIN)
-#define LED_OFF                          GPIO_ResetBits(LED_PORT, LED_PIN)
+#define RST_H                            HAL_GPIO_WritePin(MF522_RST_PORT, MF522_RST_PIN, GPIO_PIN_SET)
+#define RST_L                            HAL_GPIO_WritePin(MF522_RST_PORT, MF522_RST_PIN, GPIO_PIN_RESET)
+#define MOSI_H                           HAL_GPIO_WritePin(MF522_MOSI_PORT, MF522_MOSI_PIN, GPIO_PIN_SET)
+#define MOSI_L                           HAL_GPIO_WritePin(MF522_MOSI_PORT, MF522_MOSI_PIN, GPIO_PIN_RESET)
+#define SCK_H                            HAL_GPIO_WritePin(MF522_SCK_PORT, MF522_SCK_PIN, GPIO_PIN_SET)
+#define SCK_L                            HAL_GPIO_WritePin(MF522_SCK_PORT, MF522_SCK_PIN, GPIO_PIN_RESET)
+#define NSS_H                            HAL_GPIO_WritePin(MF522_NSS_PORT, MF522_NSS_PIN, GPIO_PIN_SET)
+#define NSS_L                            HAL_GPIO_WritePin(MF522_NSS_PORT, MF522_NSS_PIN, GPIO_PIN_RESET)
+#define READ_MISO                        HAL_GPIO_ReadPin(MF522_MISO_PORT, MF522_MISO_PIN)
+#define LED_ON                           HAL_GPIO_WritePin(LED_PORT, LED_PIN, GPIO_PIN_SET)
+#define LED_OFF                          HAL_GPIO_WritePin(LED_PORT, LED_PIN, GPIO_PIN_RESET)
 /////////////////////////////////////////////////////////////////////
-//º¯ÊıÔ­ĞÍ
+//å‡½æ•°åŸå‹
 /////////////////////////////////////////////////////////////////////
 
 
@@ -90,40 +84,40 @@ extern void ncs(unsigned char cse);
 
 
 /////////////////////////////////////////////////////////////////////
-//MF522ÃüÁî×Ö
+//MF522å‘½ä»¤å­—
 /////////////////////////////////////////////////////////////////////
-#define PCD_IDLE              0x00               //È¡Ïûµ±Ç°ÃüÁî
-#define PCD_AUTHENT           0x0E               //ÑéÖ¤ÃÜÔ¿
-#define PCD_RECEIVE           0x08               //½ÓÊÕÊı¾İ
-#define PCD_TRANSMIT          0x04               //·¢ËÍÊı¾İ
-#define PCD_TRANSCEIVE        0x0C               //·¢ËÍ²¢½ÓÊÕÊı¾İ
-#define PCD_RESETPHASE        0x0F               //¸´Î»
-#define PCD_CALCCRC           0x03               //CRC¼ÆËã
+#define PCD_IDLE              0x00               //å–æ¶ˆå½“å‰å‘½ä»¤
+#define PCD_AUTHENT           0x0E               //éªŒè¯å¯†é’¥
+#define PCD_RECEIVE           0x08               //æ¥æ”¶æ•°æ®
+#define PCD_TRANSMIT          0x04               //å‘é€æ•°æ®
+#define PCD_TRANSCEIVE        0x0C               //å‘é€å¹¶æ¥æ”¶æ•°æ®
+#define PCD_RESETPHASE        0x0F               //å¤ä½
+#define PCD_CALCCRC           0x03               //CRCè®¡ç®—
 
 /////////////////////////////////////////////////////////////////////
-//Mifare_One¿¨Æ¬ÃüÁî×Ö
+//Mifare_Oneå¡ç‰‡å‘½ä»¤å­—
 /////////////////////////////////////////////////////////////////////
-#define PICC_REQIDL           0x26               //Ñ°ÌìÏßÇøÄÚÎ´½øÈëĞİÃß×´Ì¬
-#define PICC_REQALL           0x52               //Ñ°ÌìÏßÇøÄÚÈ«²¿¿¨
-#define PICC_ANTICOLL1        0x93               //·À³å×²
-#define PICC_ANTICOLL2        0x95               //·À³å×²
-#define PICC_AUTHENT1A        0x60               //ÑéÖ¤AÃÜÔ¿
-#define PICC_AUTHENT1B        0x61               //ÑéÖ¤BÃÜÔ¿
-#define PICC_READ             0x30               //¶Á¿é
-#define PICC_WRITE            0xA0               //Ğ´¿é
-#define PICC_DECREMENT        0xC0               //¿Û¿î
-#define PICC_INCREMENT        0xC1               //³äÖµ
-#define PICC_RESTORE          0xC2               //µ÷¿éÊı¾İµ½»º³åÇø
-#define PICC_TRANSFER         0xB0               //±£´æ»º³åÇøÖĞÊı¾İ
-#define PICC_HALT             0x50               //ĞİÃß
+#define PICC_REQIDL           0x26               //å¯»å¤©çº¿åŒºå†…æœªè¿›å…¥ä¼‘çœ çŠ¶æ€
+#define PICC_REQALL           0x52               //å¯»å¤©çº¿åŒºå†…å…¨éƒ¨å¡
+#define PICC_ANTICOLL1        0x93               //é˜²å†²æ’
+#define PICC_ANTICOLL2        0x95               //é˜²å†²æ’
+#define PICC_AUTHENT1A        0x60               //éªŒè¯Aå¯†é’¥
+#define PICC_AUTHENT1B        0x61               //éªŒè¯Bå¯†é’¥
+#define PICC_READ             0x30               //è¯»å—
+#define PICC_WRITE            0xA0               //å†™å—
+#define PICC_DECREMENT        0xC0               //æ‰£æ¬¾
+#define PICC_INCREMENT        0xC1               //å……å€¼
+#define PICC_RESTORE          0xC2               //è°ƒå—æ•°æ®åˆ°ç¼“å†²åŒº
+#define PICC_TRANSFER         0xB0               //ä¿å­˜ç¼“å†²åŒºä¸­æ•°æ®
+#define PICC_HALT             0x50               //ä¼‘çœ 
 
 /////////////////////////////////////////////////////////////////////
-//MF522 FIFO³¤¶È¶¨Òå
+//MF522 FIFOé•¿åº¦å®šä¹‰
 /////////////////////////////////////////////////////////////////////
 #define DEF_FIFO_LENGTH       64                 //FIFO size=64byte
 
 /////////////////////////////////////////////////////////////////////
-//MF522¼Ä´æÆ÷¶¨Òå
+//MF522å¯„å­˜å™¨å®šä¹‰
 /////////////////////////////////////////////////////////////////////
 // PAGE 0
 #define     RFU00                 0x00
@@ -199,7 +193,7 @@ extern void ncs(unsigned char cse);
 #define     KEYA                  0x60
 
 /////////////////////////////////////////////////////////////////////
-//ºÍMF522Í¨Ñ¶Ê±·µ»ØµÄ´íÎó´úÂë
+//å’ŒMF522é€šè®¯æ—¶è¿”å›çš„é”™è¯¯ä»£ç 
 /////////////////////////////////////////////////////////////////////
 #define MI_OK                          (char)0
 #define MI_NOTAGERR                    (char)(-1)
@@ -210,7 +204,7 @@ extern void ncs(unsigned char cse);
 #define TRUE 1
 #define FALSE 0
 
-//º¯ÊıÉùÃ÷
+//å‡½æ•°å£°æ˜
 
 
 #endif

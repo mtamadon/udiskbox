@@ -1,44 +1,33 @@
-/******************** (C) COPYRIGHT 2011 Ò°»ğÇ¶ÈëÊ½¿ª·¢¹¤×÷ÊÒ ********************
- * ÎÄ¼şÃû  £ºled.c
- * ÃèÊö    £ºled Ó¦ÓÃº¯Êı¿â
- *          
- * ÊµÑéÆ½Ì¨£ºÒ°»ğSTM32¿ª·¢°å
- * Ó²¼şÁ¬½Ó£º-----------------
+/******************** (C) COPYRIGHT 2011 é‡ç«åµŒå…¥å¼å¼€å‘å·¥ä½œå®¤ ********************
+ * æ–‡ä»¶å  ï¼šled.c
+ * æè¿°    ï¼šled åº”ç”¨å‡½æ•°åº“
+ *
+ * å®éªŒå¹³å°ï¼šé‡ç«STM32å¼€å‘æ¿
+ * ç¡¬ä»¶è¿æ¥ï¼š-----------------
  *          |   PC3 - LED1     |
  *          |   PC4 - LED2     |
  *          |   PC5 - LED3     |
- *           ----------------- 
- * ¿â°æ±¾  £ºST3.0.0
+ *           -----------------
+ * åº“ç‰ˆæœ¬  ï¼šST3.0.0
  *
- * ×÷Õß    £ºfire  QQ: 313303034
- * ²©¿Í    £ºfirestm32.blog.chinaunix.net 
-**********************************************************************************/
+ * ä½œè€…    ï¼šfire  QQ: 313303034
+ * åšå®¢    ï¼šfirestm32.blog.chinaunix.net
+ **********************************************************************************/
 
 #include "led.h"
 
 void LED_GPIO_Config(void)
 {
-	GPIO_InitTypeDef GPIO_InitStructure;
-	RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD, ENABLE);
+    GPIO_InitTypeDef GPIO_InitStructure;
+    /*RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD, ENABLE);*/
+    __HAL_RCC_GPIOD_CLK_ENABLE();
 
-  GPIO_InitStructure.GPIO_Pin = GPIO_PIN_13 ;	
-  GPIO_InitStructure.GPIO_Pin = GPIO_PIN_13 ;	
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;       
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOD, &GPIO_InitStructure);
+    GPIO_InitStructure.Pin = GPIO_PIN_13|GPIO_PIN_14;
+    GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStructure);
 
-	GPIO_ResetBits(GPIOD, GPIO_PIN_13 );	 // turn off all led
-	GPIO_ResetBits(GPIOD, GPIO_PIN_13 );	 // turn off all led
-	RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD, ENABLE);
-
-  GPIO_InitStructure.GPIO_Pin = GPIO_PIN_14 ;	
-  GPIO_InitStructure.GPIO_Pin = GPIO_PIN_14 ;	
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;       
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-  GPIO_Init(GPIOG, &GPIO_InitStructure);
-
-	GPIO_ResetBits(GPIOG, GPIO_PIN_14 );	 // turn off all led
-	GPIO_ResetBits(GPIOG, GPIO_PIN_14 );	 // turn off all led
+    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13|GPIO_PIN_14, GPIO_PIN_RESET);	 // turn off all led
 }
 
 

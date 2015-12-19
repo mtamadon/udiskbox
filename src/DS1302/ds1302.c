@@ -1,23 +1,16 @@
-#include <stm32f1xx_hal_conf.h>
+#include <stm32f1xx_hal.h>
 
 #define NOP() __NOP
 
 #define DS1302_CLK_H()	(GPIOE->BSRR=GPIO_PIN_4)
-#define DS1302_CLK_H()	(GPIOE->BSRR=GPIO_PIN_4)
-#define DS1302_CLK_L()	(GPIOE->BRR=GPIO_PIN_4)
 #define DS1302_CLK_L()	(GPIOE->BRR=GPIO_PIN_4)
 
 #define DS1302_RST_H()	(GPIOE->BSRR=GPIO_PIN_6)
-#define DS1302_RST_H()	(GPIOE->BSRR=GPIO_PIN_6)
-#define DS1302_RST_L()	(GPIOE->BRR=GPIO_PIN_6)
 #define DS1302_RST_L()	(GPIOE->BRR=GPIO_PIN_6)
 
 #define DS1302_OUT_H()	(GPIOE->BSRR=GPIO_PIN_5)
-#define DS1302_OUT_H()	(GPIOE->BSRR=GPIO_PIN_5)
-#define DS1302_OUT_L()	(GPIOE->BRR=GPIO_PIN_5)
 #define DS1302_OUT_L()	(GPIOE->BRR=GPIO_PIN_5)
 
-#define DS1302_IN_X		(GPIOE->IDR&GPIO_PIN_5)
 #define DS1302_IN_X		(GPIOE->IDR&GPIO_PIN_5)
 
 #define Time_24_Hour	0x00	//24时制控制
@@ -37,61 +30,63 @@ static GPIO_InitTypeDef GPIO_InitStructure;
 
 void DS1302_Configuration(void)
 {
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);
+	/*RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);*/
+    __HAL_RCC_GPIOE_CLK_ENABLE();
+
+	GPIO_InitStructure.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6;
+	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;	//推挽输出
+	GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;	//50M时钟速度
+	HAL_GPIO_Init(GPIOE, &GPIO_InitStructure);
 
 	/* PE4,5,6输出 */
-	GPIO_ResetBits(GPIOE,GPIO_PIN_4|GPIO_Pin_5|GPIO_Pin_6);
-	GPIO_ResetBits(GPIOE,GPIO_PIN_4|GPIO_Pin_5|GPIO_Pin_6);
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_4|GPIO_Pin_5|GPIO_Pin_6;
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_4|GPIO_Pin_5|GPIO_Pin_6;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	//推挽输出
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	//50M时钟速度
-	GPIO_Init(GPIOE, &GPIO_InitStructure);
+	GPIO_ResetBits(GPIOE,GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6);
 }
 
 
-static void DelayNOP(u32 count)
+static void DelayNOP(uint32_t count)
 {
 	while(count--) NOP();
 }
 
 static void DS1302_OUT(void)
 {
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_5;
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_5;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_Init(GPIOE, &GPIO_InitStructure);
+	GPIO_InitStructure.Pin = GPIO_PIN_5;
+	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+	HAL_GPIO_Init(GPIOE, &GPIO_InitStructure);
 }
 
 static void DS1302_IN(void)
 {
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_5;
-	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_5;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
-	GPIO_Init(GPIOE, &GPIO_InitStructure);
+	GPIO_InitStructure.Pin = GPIO_PIN_5;
+	GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStructure.Pull = GPIO_PULLUP;
+	HAL_GPIO_Init(GPIOE, &GPIO_InitStructure);
 }
 
-void DS1302SendByte(u8 byte)
+void DS1302SendByte(uint8_t byte)
 {
-	u8	i;
+	uint8_t	i;
 
 	for(i=0x01;i;i<<=1)
 	{
-		if(byte&i)	DS1302_OUT_H();
-		else	DS1302_OUT_L();
+		if(byte&i)
+            DS1302_OUT_H();
+		else
+            DS1302_OUT_L();
 		DS1302_CLK_H();
 		DelayNOP(50);		//加延时
 		DS1302_CLK_L();
 	}
 }
 
-u8 DS1302ReceiveByte(void)
+uint8_t DS1302ReceiveByte(void)
 {
-	u8	i,byte=0;
+	uint8_t	i,byte=0;
 
 	for(i=0x01;i;i<<=1)
 	{
-		if(DS1302_IN_X)	byte |= i;
+		if(DS1302_IN_X)
+            byte |= i;
 		DS1302_CLK_H();
 		DelayNOP(50);		//加延时
 		DS1302_CLK_L();
@@ -99,7 +94,7 @@ u8 DS1302ReceiveByte(void)
 	return(byte);
 }
 
-void Write1302(u8 addr,u8 data)
+void Write1302(uint8_t addr,uint8_t data)
 {
     DS1302_OUT();
 	DS1302_RST_L();
@@ -112,9 +107,9 @@ void Write1302(u8 addr,u8 data)
 	DS1302_RST_L();
 }
 
-u8 Read1302(u8 addr)
+uint8_t Read1302(uint8_t addr)
 {
-    u8 data=0;
+    uint8_t data=0;
 
     DS1302_OUT();
 	DS1302_RST_L();
@@ -130,9 +125,9 @@ u8 Read1302(u8 addr)
 }
 
 //读取时间函数
-void DS1302_GetTime(u8 *time)
+void DS1302_GetTime(uint8_t *time)
 {
-	//u8 tmp;
+	//uint8_t tmp;
 
 	time[0] = Read1302(DS1302_YEAR);
 	time[1] = Read1302(DS1302_WEEK);
@@ -148,9 +143,9 @@ void DS1302_GetTime(u8 *time)
 addr:地址,从0到30,共31个字节的空间
 返回为所读取的数据
 */
-u8 ReadDS1302Ram(u8 addr)
+uint8_t ReadDS1302Ram(uint8_t addr)
 {
-	u8	tmp,res;
+	uint8_t	tmp,res;
 
 	tmp = (addr<<1)|0xc0;
 	res = Read1302(tmp);
@@ -162,9 +157,9 @@ u8 ReadDS1302Ram(u8 addr)
 addr:地址,从0到30,共31个字节的空间
 data:要写的数据
 */
-void WriteDS1302Ram(u8 addr,u8 data)
+void WriteDS1302Ram(uint8_t addr,uint8_t data)
 {
-	u8	tmp;
+	uint8_t	tmp;
 
 	Write1302(DS1302_WRITE,0x00);		//关闭写保护
 	tmp = (addr<<1)|0xc0;
@@ -172,9 +167,9 @@ void WriteDS1302Ram(u8 addr,u8 data)
 	Write1302(DS1302_WRITE,0x80);		//打开写保护
 }
 
-void ReadDSRam(u8 *p,u8 add,u8 cnt)
+void ReadDSRam(uint8_t *p,uint8_t add,uint8_t cnt)
 {
-	u8 i;
+	uint8_t i;
 
 	if(cnt>30) return;
 	for(i=0;i<cnt;i++)
@@ -184,9 +179,9 @@ void ReadDSRam(u8 *p,u8 add,u8 cnt)
 	}
 }
 
-void WriteDSRam(u8 *p,u8 add,u8 cnt)
+void WriteDSRam(uint8_t *p,uint8_t add,uint8_t cnt)
 {
-	u8 i;
+	uint8_t i;
 
 	if(cnt>30) return;
 	for(i=0;i<cnt;i++)
@@ -198,7 +193,7 @@ void WriteDSRam(u8 *p,u8 add,u8 cnt)
 /*
 读时间函数,顺序为:年周月日时分秒
 */
-void ReadDS1302Clock(u8 *p)
+void ReadDS1302Clock(uint8_t *p)
 {
 	DS1302_OUT();
 	DS1302_RST_L();
@@ -222,7 +217,7 @@ void ReadDS1302Clock(u8 *p)
 /*
 写时间函数,顺序为:年周月日时分秒
 */
-void WriteDS1302Clock(u8 *p)
+void WriteDS1302Clock(uint8_t *p)
 {
 	Write1302(DS1302_WRITE,0x00);		//关闭写保护
 	DS1302_OUT();
@@ -244,7 +239,7 @@ void WriteDS1302Clock(u8 *p)
 }
 void InitClock(void)
 {
-	u8	tmp;
+	uint8_t	tmp;
 
 	DS1302_Configuration();
 	tmp = ReadDS1302Ram(0);
@@ -261,7 +256,7 @@ void InitClock(void)
 /*
 void TestDS1302(void)
 {
-	u8 i,tt[7],dd1[30],dd2[30];
+	uint8_t i,tt[7],dd1[30],dd2[30];
 
 	DS1302_Configuration();
 	InitClock();

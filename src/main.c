@@ -22,7 +22,7 @@
 #include "PICC.h"
 #include "string.h"
 #include "stdio.h"
-#include "STDLIB.H"
+#include "stdlib.h"
 #include "ds1302.h"
 #include "rfidupan.h"
 #include "inttypes.h"
@@ -137,7 +137,7 @@ int main(void)
      :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
     HAL_Init();
     /*Init_NVIC();     //中断向量表注册函数*/ //TODO: USART2 中断向量注册
-    NVIC_Configuration(); //SDIO中断处理初始化
+    /*NVIC_Configuration(); //SDIO中断处理初始化*/
     Init_LED();      //各个外设引脚配置
     Init_Usart();     //串口引脚配置
     Usart_Configuration(USART1,115200); //串口1配置 设置波特率为115200
@@ -331,7 +331,7 @@ int main(void)
  ** 作  　者: Dream
  ** 日　  期: 2011年6月20日
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-void Time_Conv(u8 * tt,unsigned char cnt,char * timestr)
+void Time_Conv(uint8_t * tt,unsigned char cnt,char * timestr)
 {
 
     timestr[0]='2';                //年
@@ -372,22 +372,20 @@ void Init_LED()
 {
     GPIO_InitTypeDef GPIO_InitStructure;     //定义一个GPIO结构体变量
 
-    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG,ENABLE); //使能各个端口时钟，重要！！！
+    /*RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG,ENABLE); //使能各个端口时钟，重要！！！*/
+    __HAL_RCC_GPIOG_CLK_ENABLE();
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_PIN_14;      //配置LED端口挂接到6、12、13端口
-    GPIO_InitStructure.GPIO_Pin = GPIO_PIN_14;          //配置LED端口挂接到6、12、13端口
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;     //通用输出推挽
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;     //配置端口速度为50M
-    GPIO_Init(GPIOG, &GPIO_InitStructure);        //根据参数初始化GPIOD寄存器RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG | RCC_APB2Periph_GPIOE,ENABLE); //使能各个端口时钟，重要！！！
+    GPIO_InitStructure.Pin = GPIO_PIN_14;      //配置LED端口挂接到6、12、13端口
+    GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;     //通用输出推挽
+    GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;     //配置端口速度为50M
+    HAL_GPIO_Init(GPIOG, &GPIO_InitStructure);        //根据参数初始化GPIOD寄存器RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG | RCC_APB2Periph_GPIOE,ENABLE); //使能各个端口时钟，重要！！！
 
-    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD,ENABLE); //使能各个端口时钟，重要！！！
-    GPIO_InitStructure.GPIO_Pin = GPIO_PIN_13;          //配置LED端口挂接到6、12、13端口
-    GPIO_InitStructure.GPIO_Pin = GPIO_PIN_13;          //配置LED端口挂接到6、12、13端口
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;     //通用输出推挽
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;     //配置端口速度为50M
-    GPIO_Init(GPIOD, &GPIO_InitStructure);        //根据参数初始化GPIOD寄存器
-
-
+    /*RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD,ENABLE); //使能各个端口时钟，重要！！！*/
+    __HAL_RCC_GPIOD_CLK_ENABLE();
+    GPIO_InitStructure.Pin = GPIO_PIN_13;          //配置LED端口挂接到6、12、13端口
+    GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;     //通用输出推挽
+    GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;     //配置端口速度为50M
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStructure);        //根据参数初始化GPIOD寄存器
 }
 
 
@@ -398,26 +396,28 @@ void Init_LED()
  ** 作  　者: Dream
  ** 日　  期: 2011年5月14日
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-void Init_NVIC(void)
-{
-    NVIC_InitTypeDef NVIC_InitStructure;   //定义一个NVIC向量表结构体变量
-
-#ifdef  VECT_TAB_RAM         //向量表基地址选择
-
-    NVIC_SetVectorTable(NVIC_VectTab_RAM, 0x0);   //将0x20000000地址作为向量表基地址(RAM)
-#else
-
-    NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0); //将0x08000000地址作为向量表基地址(FLASH)
-#endif
-
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); //设置中断组 为2
-
-    NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;   //配置串口2为中断源
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;  //设置占先优先级为2
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;     //设置副优先级为0
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;      //使能串口1中断
-    NVIC_Init(&NVIC_InitStructure);          //根据参数初始化中断寄存器
-}
+/*
+ *void Init_NVIC(void)
+ *{
+ *    NVIC_InitTypeDef NVIC_InitStructure;   //定义一个NVIC向量表结构体变量
+ *
+ *#ifdef  VECT_TAB_RAM         //向量表基地址选择
+ *
+ *    NVIC_SetVectorTable(NVIC_VectTab_RAM, 0x0);   //将0x20000000地址作为向量表基地址(RAM)
+ *#else
+ *
+ *    NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0); //将0x08000000地址作为向量表基地址(FLASH)
+ *#endif
+ *
+ *    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); //设置中断组 为2
+ *
+ *    NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;   //配置串口2为中断源
+ *    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;  //设置占先优先级为2
+ *    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;     //设置副优先级为0
+ *    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;      //使能串口1中断
+ *    NVIC_Init(&NVIC_InitStructure);          //根据参数初始化中断寄存器
+ *}
+ */
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: Delay_Ms_Ms
