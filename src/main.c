@@ -1,20 +1,22 @@
 /******************** (C) COPYRIGHT 2012 WildFire Team **************************
- * ÎÄ¼şÃû  £ºmain.c
- * ÃèÊö    £ºMicroSD¿¨(SDIOÄ£Ê½)²âÊÔÊµÑé£¬²¢½«²âÊÔĞÅÏ¢Í¨¹ı´®¿Ú1ÔÚµçÄÔµÄ³¬¼¶ÖÕ¶ËÉÏ
- *           ´òÓ¡³öÀ´
- * ÊµÑéÆ½Ì¨£ºÒ°»ğSTM32¿ª·¢°å
- * ¿â°æ±¾  £ºST3.5.0
+ * æ–‡ä»¶å  ï¼šmain.c
+ * æè¿°    ï¼šMicroSDå¡(SDIOæ¨¡å¼)æµ‹è¯•å®éªŒï¼Œå¹¶å°†æµ‹è¯•ä¿¡æ¯é€šè¿‡ä¸²å£1åœ¨ç”µè„‘çš„è¶…çº§ç»ˆç«¯ä¸Š
+ *           æ‰“å°å‡ºæ¥
+ * å®éªŒå¹³å°ï¼šé‡ç«STM32å¼€å‘æ¿
+ * åº“ç‰ˆæœ¬  ï¼šST3.5.0
  *
- * ×÷Õß    £ºwildfire team
- * ÂÛÌ³    £ºhttp://www.amobbs.com/forum-1008-1.html
- * ÌÔ±¦    £ºhttp://firestm32.taobao.com
-*********************************************************************************/
+ * ä½œè€…    ï¼šwildfire team
+ * è®ºå›    ï¼šhttp://www.amobbs.com/forum-1008-1.html
+ * æ·˜å®    ï¼šhttp://firestm32.taobao.com
+ *********************************************************************************/
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 #include "system_stm32f1xx.h"
 
-#include "sdio_sdcard.h"
 #include "ff.h"
+#include "ff_gen_drv.h"
+#include "sd_diskio.h"
+
 #include "usually.h"
 #include "usart.h"
 #include "PICC.h"
@@ -30,9 +32,9 @@
 #include "net.h"
 
 
-//±äÁ¿¶¨Òå
+//å˜é‡å®šä¹‰
 
-//ÏÔÊ¾½á¹¹Ìå
+//æ˜¾ç¤ºç»“æ„ä½“
 typedef struct _DISSTRUCT
 {
     char Name[32];
@@ -48,16 +50,12 @@ typedef struct _DISSTRUCT
 
 DISSTRUCT LCDSTRUCT;
 
+//å‡½æ•°ç”³æ˜
 
-
-
-
-//º¯ÊıÉêÃ÷
-
-void LCDUpdate(char stype);    //LCDÏÔÊ¾
+void LCDUpdate(char stype);    //LCDæ˜¾ç¤º
 void Init_LCDSTRUCT(void);
 
-void Time_Conv(uint8_t * tt,unsigned char cnt,char * timestr);  //ÈÕÆÚÊ±¼ä
+void Time_Conv(uint8_t * tt,unsigned char cnt,char * timestr);  //æ—¥æœŸæ—¶é—´
 char PcdRequest(unsigned char req_code,unsigned char *pTagType);
 void ncs(unsigned char cse);
 
@@ -67,7 +65,7 @@ void Delay_Ms(uint16_t time);
 void Delay_Us(uint16_t time);
 
 void Init_RfidUpan_GPIO(void);
-void Init_RFID(void);  //³õÊ¼»¯RFID
+void Init_RFID(void);  //åˆå§‹åŒ–RFID
 unsigned char CheckSum(unsigned char *dat, unsigned char num);
 void SendCommand(void);
 void LongToStr( char *array, unsigned long number, unsigned char count);
@@ -81,7 +79,7 @@ int printallfile(unsigned char * filename );
 
 extern unsigned  int fill_tcp_data_p(unsigned char *buf,unsigned  int pos, const unsigned char *progmem_s);
 extern void SendTcp(unsigned int plen);
-// È«¾Ö±äÁ¿¶¨ÒåÇø
+// å…¨å±€å˜é‡å®šä¹‰åŒº
 uint8_t bTemp;
 static unsigned char rfid1=0;
 static unsigned char rfid2=0;
@@ -92,28 +90,23 @@ int a;
 long upanNum[2]={157384350,2306834590};
 static unsigned char upanState=0x00;
 
-// ÎÄ¼ş²Ù×÷±äÁ¿ÇøÓò
-unsigned char serialnum=10,namenum=8,strall=22; //@xxx(RFIDºÅÂë10Î»)+¿Õ¸ñ(1Î»)+xxx(Ãû³ÆÇ°Ãæ²¹¿Õ¸ñ)+0A0D(»»ĞĞ·û)
-unsigned char upanstrall=32; //@xxx(RFIDºÅÂë10Î»)+¿Õ¸ñ(1Î»)+xxx(5Î»upanÃû³Æ)+¿Õ¸ñ(1Î»)+xxx(½èUÅÌÈËµÄRFIDºÅÂë10Î»)+0A0D(»»ĞĞ·û)
+// æ–‡ä»¶æ“ä½œå˜é‡åŒºåŸŸ
+unsigned char serialnum=10,namenum=8,strall=22; //@xxx(RFIDå·ç 10ä½)+ç©ºæ ¼(1ä½)+xxx(åç§°å‰é¢è¡¥ç©ºæ ¼)+0A0D(æ¢è¡Œç¬¦)
+unsigned char upanstrall=32; //@xxx(RFIDå·ç 10ä½)+ç©ºæ ¼(1ä½)+xxx(5ä½upanåç§°)+ç©ºæ ¼(1ä½)+xxx(å€ŸUç›˜äººçš„RFIDå·ç 10ä½)+0A0D(æ¢è¡Œç¬¦)
+char SDPath[4];
 FIL fdrd,fdwr;
 FATFS fs;
 UINT br, bw;            // File R/W count
 BYTE buffer;       // file copy buffer
 BYTE filetemp[40]="";
 
+unsigned char userfilename[20]="0:/cardlist.txt"; //èŒå·¥txt
+unsigned char upanfilename[20]="0:/upanlist.txt"; //èŒå·¥txt
 
-unsigned char userfilename[20]="0:/cardlist.txt"; //Ö°¹¤txt
-unsigned char upanfilename[20]="0:/upanlist.txt"; //Ö°¹¤txt
-
-
-u8 key_time = 0;
+uint8_t key_time = 0;
 unsigned char count;
 
-
-
 extern  unsigned char buf[1501];
-
-
 
 extern unsigned char indarray[20];
 extern unsigned char lenind;
@@ -123,9 +116,8 @@ DWORD send_count=0;
 int main(void)
 {
 
-
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-     ** ±äÁ¿¶¨Òå
+     ** å˜é‡å®šä¹‰
      :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 
     uint8_t tt[7];
@@ -141,80 +133,62 @@ int main(void)
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-     ** ³õÊ¼»¯ÇøÓò
+     ** åˆå§‹åŒ–åŒºåŸŸ
      :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    SystemInit();					//ÏµÍ³Ê±ÖÓÅäÖÃ
-    Init_NVIC();					//ÖĞ¶ÏÏòÁ¿±í×¢²áº¯Êı
-    NVIC_Configuration(); //SDIOÖĞ¶Ï´¦Àí³õÊ¼»¯
-    Init_LED();						//¸÷¸öÍâÉèÒı½ÅÅäÖÃ
-    Init_Usart();					//´®¿ÚÒı½ÅÅäÖÃ
-    Usart_Configuration(USART1,115200);	//´®¿Ú1ÅäÖÃ ÉèÖÃ²¨ÌØÂÊÎª115200
-    Usart_Configuration(USART2,9600);	//´®¿Ú2ÅäÖÃ ÉèÖÃ²¨ÌØÂÊÎª115200
-    Usart_Configuration(USART3,115200);	//´®¿Ú3ÅäÖÃ ÉèÖÃ²¨ÌØÂÊÎª115200
-    Delay_Ms(200);        //µÈ´ı200msÈ·±£ÆÁÄ»Æô¶¯
+    HAL_Init();
+    /*Init_NVIC();     //ä¸­æ–­å‘é‡è¡¨æ³¨å†Œå‡½æ•°*/ //TODO: USART2 ä¸­æ–­å‘é‡æ³¨å†Œ
+    NVIC_Configuration(); //SDIOä¸­æ–­å¤„ç†åˆå§‹åŒ–
+    Init_LED();      //å„ä¸ªå¤–è®¾å¼•è„šé…ç½®
+    Init_Usart();     //ä¸²å£å¼•è„šé…ç½®
+    Usart_Configuration(USART1,115200); //ä¸²å£1é…ç½® è®¾ç½®æ³¢ç‰¹ç‡ä¸º115200
+    Usart_Configuration(USART2,9600); //ä¸²å£2é…ç½® è®¾ç½®æ³¢ç‰¹ç‡ä¸º115200
+    Usart_Configuration(USART3,115200); //ä¸²å£3é…ç½® è®¾ç½®æ³¢ç‰¹ç‡ä¸º115200
+    Delay_Ms(200);        //ç­‰å¾…200msç¡®ä¿å±å¹•å¯åŠ¨
 
     Init_LCDSTRUCT();
-    //	LCDUpdate('a');         //LCDÏÔÊ¾
+    // LCDUpdate('a');         //LCDæ˜¾ç¤º
     //LCDUpdate('n');
     printf("start..\n\t");
 
-    Cmd.SendFlag = 0;       //³õÊ¼»¯RFID±êÖ¾Î»
+    Cmd.SendFlag = 0;       //åˆå§‹åŒ–RFIDæ ‡å¿—ä½
     Cmd.ReceiveFlag = 0;
     Picc.Value = 0;
 
-
-
-    InitClock();            //ÅäÖÃDS1302
-    // 	tt[0] = 0x15;
-    // 	tt[1] = 0x04;
-    // 	tt[2] = 0x27;
-    // 	tt[3] = 0x21;
-    // 	tt[4] = 0x05;
-    // 	tt[5] = 0x00;
-    // 	WriteDS1302Clock(tt);
-    //	for(i=1;i<3;i++)
-    //{
-    //Init_RfidUpan_GPIO();
-    //ncs(1);
-    // Init_RfidUpan();
-    //ncs(2);
-    //Init_RfidUpan();
-    //	Delay_Ms(20);
-    //}
+    InitClock();            //é…ç½®DS1302
 
     Init_RfidUpan_GPIO();
 
-
-
-    /* ENC28J60 SPI ½Ó¿Ú³õÊ¼»¯ */
-    SPI_Enc28j60_Init();//º¯Êı³õÊ¼»¯
+    /* ENC28J60 SPI æ¥å£åˆå§‹åŒ– */
+    SPI_Enc28j60_Init();//å‡½æ•°åˆå§‹åŒ–
     SetIpMac();
-    gflag_send=0;       //±äÁ¿³õÊ¼»¯
+    gflag_send=0;       //å˜é‡åˆå§‹åŒ–
     send_count=0;
-    /* ¹ÒÔØÎÄ¼şÏµÍ³*/
+    /* æŒ‚è½½æ–‡ä»¶ç³»ç»Ÿ*/
 
-    f_mount(0,&fs);
+    FATFS_LinkDriver(&SD_Driver, SDPath); //TODO: Error Handle
+    f_mount(&fs, (TCHAR const*)SDPath, 0); //TODO: Error Handle
+
     LCDShowUpanState(upanfilename);
 
     /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-     ** Ñ­»·ÇøÓò
+     ** å¾ªç¯åŒºåŸŸ
      :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
     while(1)
     {
         ReadDS1302Clock(tt);
         Time_Conv(tt,6,LCDSTRUCT.TimeNow);
-        ////////////////////////////////////////////////////////////////////////////////////	    	¼ì²â¿ªÏä
-        Web_Server();   //ÍøÂçÄ£¿é¿ªÊ¼¹¤×÷
+        ////////////////////////////////////////////////////////////////////////////////////      æ£€æµ‹å¼€ç®±
+        Web_Server();   //ç½‘ç»œæ¨¡å—å¼€å§‹å·¥ä½œ
 
         //////////////////////////////////////////////////////////////////////
         bTemp = CommandProcess();
         if(bTemp == 0)
         {
-            //ÔÚÕâÀï¿ªÊ¼ÄãµÄ²Ù×÷
-            //ËùÓĞÓĞÓÃÊı¾İÔÚ Picc
-            //¿¨ºÅ	==>Picc.UID
-            //¿¨ÀàĞÍ==>Picc.Type
-            //Óà¶î	==>Picc.Value
+            //åœ¨è¿™é‡Œå¼€å§‹ä½ çš„æ“ä½œ
+            //æ‰€æœ‰æœ‰ç”¨æ•°æ®åœ¨ Picc
+            //å¡å· ==>Picc.UID
+            //å¡ç±»å‹==>Picc.Type
+            //ä½™é¢ ==>Picc.Value
             if(1)//door_state==0)
             {
                 LongToStr(LCDSTRUCT.UserID,Picc.UID,10);
@@ -227,10 +201,10 @@ int main(void)
                     //strcpy(strtmp,"NOT FIND");
                     door_closed=1;
                 }
-                else if(stread>0)   	//±È½ÏÊÇ·ñÊÇºÏ·¨¿¨
+                else if(stread>0)    //æ¯”è¾ƒæ˜¯å¦æ˜¯åˆæ³•å¡
                 {
-                    door_state=1;				//¿ªÃÅ
-                    strcpy(strtmp,namearray);//ÏÔÊ¾ĞÕÃû£¬ÌáÊ¾¹ØÃÅ
+                    door_state=1;    //å¼€é—¨
+                    strcpy(strtmp,namearray);//æ˜¾ç¤ºå§“åï¼Œæç¤ºå…³é—¨
                     strcpy(LCDSTRUCT.Name,strtmp);
                     LCDUpdate('a');
                 }
@@ -241,7 +215,7 @@ int main(void)
         }
         else if(bTemp == 0xFF)
         {
-            //ÎŞ¿¨
+            //æ— å¡
         }
         else if(bTemp == 0xFE)
         {
@@ -249,10 +223,10 @@ int main(void)
         }
         else if(bTemp == 0xFD)
         {
-            //²ÎÊı´íÎó
+            //å‚æ•°é”™è¯¯
         }
 
-        ///////////////////////////////////////////////////////////////////////////////////////				¼ì²â¹ØÃÅ
+        ///////////////////////////////////////////////////////////////////////////////////////    æ£€æµ‹å…³é—¨
         if((door_state==1)&&(door_closed==1))
         {
             door_state++;
@@ -261,20 +235,20 @@ int main(void)
             //door_closed=0;
             //LCDUpdate('a');
         }
-        ///////////////////////////////////////////////////////////////////////////////////////   		¼ì²âuÅÌ
+        ///////////////////////////////////////////////////////////////////////////////////////     æ£€æµ‹uç›˜
         if(door_state!=2){door_closed=0;continue;}
 
         upanState=0x00;
-        /////////////////////////////////////////////////////////////////////////////////////////			RFID2
+        /////////////////////////////////////////////////////////////////////////////////////////   RFID2
         if(rfid2==0)
         {
-            ncs(2);//Æ¬Ñ¡
+            ncs(2);//ç‰‡é€‰
             Init_RfidUpan();
-            rfid_status = PcdRequest(PICC_REQALL,g_ucTempbuf);//É¨Ãè¿¨
+            rfid_status = PcdRequest(PICC_REQALL,g_ucTempbuf);//æ‰«æå¡
             printf("%02x  ",rfid_status);
             if(rfid_status==0)
             {
-                rfid_status = PcdAnticoll(g_ucTempbuf);//·À³å×²
+                rfid_status = PcdAnticoll(g_ucTempbuf);//é˜²å†²æ’
                 if(rfid_status==0)
                 {
                     Picc.UID = g_ucTempbuf[0];
@@ -298,15 +272,15 @@ int main(void)
                 }
             }
         }
-        ///////////////////////////////////////////////////////////////////////////////////////////     	RFID1
+        ///////////////////////////////////////////////////////////////////////////////////////////      RFID1
         if(rfid1==0)
         {
             ncs(1);
             Init_RfidUpan();
-            rfid_status = PcdRequest(PICC_REQALL,g_ucTempbuf);//É¨Ãè¿¨
+            rfid_status = PcdRequest(PICC_REQALL,g_ucTempbuf);//æ‰«æå¡
             if(rfid_status==0)
             {
-                rfid_status = PcdAnticoll(g_ucTempbuf);//·À³å×²
+                rfid_status = PcdAnticoll(g_ucTempbuf);//é˜²å†²æ’
                 if(rfid_status==0)
                 {
                     Picc.UID = g_ucTempbuf[0];
@@ -331,7 +305,7 @@ int main(void)
             }
         }
         door_state=0;
-        ///////////////////////////////////////////////////////////////////////////////////     ÏÔÊ¾×´Ì¬
+        ///////////////////////////////////////////////////////////////////////////////////     æ˜¾ç¤ºçŠ¶æ€
         if((upanState&0x01)==0)
         {
             strcpy(LCDSTRUCT.UdiskInfo,strtmp);strcat(LCDSTRUCT.UdiskInfo," (1)");
@@ -351,36 +325,36 @@ int main(void)
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-** º¯ÊıÃû³Æ: Time_Conv
-** ¹¦ÄÜÃèÊö: LED IOÒı½ÅÅäÖÃ
-** ²ÎÊıÃèÊö£ºÎŞ
-** ×÷  ¡¡Õß: Dream
-** ÈÕ¡¡  ÆÚ: 2011Äê6ÔÂ20ÈÕ
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+ ** å‡½æ•°åç§°: Time_Conv
+ ** åŠŸèƒ½æè¿°: LED IOå¼•è„šé…ç½®
+ ** å‚æ•°æè¿°ï¼šæ— 
+ ** ä½œ  ã€€è€…: Dream
+ ** æ—¥ã€€  æœŸ: 2011å¹´6æœˆ20æ—¥
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 void Time_Conv(u8 * tt,unsigned char cnt,char * timestr)
 {
 
-	timestr[0]='2';                //Äê
-	timestr[1]='0';
-	timestr[2]=(tt[0]>>4) + 0x30;
-	timestr[3]=(tt[0]&0x0f)+0x30;
-	timestr[4]='-';
+    timestr[0]='2';                //å¹´
+    timestr[1]='0';
+    timestr[2]=(tt[0]>>4) + 0x30;
+    timestr[3]=(tt[0]&0x0f)+0x30;
+    timestr[4]='-';
 
-	timestr[5]=(tt[1]>>4) + 0x30;  //ÔÂ
-	timestr[6]=(tt[1]&0x0f)+0x30;
-	timestr[7]='-';
+    timestr[5]=(tt[1]>>4) + 0x30;  //æœˆ
+    timestr[6]=(tt[1]&0x0f)+0x30;
+    timestr[7]='-';
 
-	timestr[8]=(tt[2]>>4) + 0x30;  //ÈÕ
-	timestr[9]=(tt[2]&0x0f)+0x30;
-	timestr[10]=' ';
+    timestr[8]=(tt[2]>>4) + 0x30;  //æ—¥
+    timestr[9]=(tt[2]&0x0f)+0x30;
+    timestr[10]=' ';
 
-	timestr[11]=(tt[3]>>4) + 0x30;  //Ê±
-	timestr[12]=(tt[3]&0x0f)+0x30;
-	timestr[13]=':';
+    timestr[11]=(tt[3]>>4) + 0x30;  //æ—¶
+    timestr[12]=(tt[3]&0x0f)+0x30;
+    timestr[13]=':';
 
-	timestr[14]=(tt[4]>>4) + 0x30;  //·Ö
-	timestr[15]=(tt[4]&0x0f)+0x30;
-	timestr[16]='\0';
+    timestr[14]=(tt[4]>>4) + 0x30;  //åˆ†
+    timestr[15]=(tt[4]&0x0f)+0x30;
+    timestr[16]='\0';
 
 
 
@@ -388,252 +362,254 @@ void Time_Conv(u8 * tt,unsigned char cnt,char * timestr)
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-** º¯ÊıÃû³Æ: Init_LED
-** ¹¦ÄÜÃèÊö: LED IOÒı½ÅÅäÖÃ
-** ²ÎÊıÃèÊö£ºÎŞ
-** ×÷  ¡¡Õß: Dream
-** ÈÕ¡¡  ÆÚ: 2011Äê6ÔÂ20ÈÕ
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+ ** å‡½æ•°åç§°: Init_LED
+ ** åŠŸèƒ½æè¿°: LED IOå¼•è„šé…ç½®
+ ** å‚æ•°æè¿°ï¼šæ— 
+ ** ä½œ  ã€€è€…: Dream
+ ** æ—¥ã€€  æœŸ: 2011å¹´6æœˆ20æ—¥
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 void Init_LED()
 {
-    GPIO_InitTypeDef GPIO_InitStructure;					//¶¨ÒåÒ»¸öGPIO½á¹¹Ìå±äÁ¿
+    GPIO_InitTypeDef GPIO_InitStructure;     //å®šä¹‰ä¸€ä¸ªGPIOç»“æ„ä½“å˜é‡
 
-    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG,ENABLE);	//Ê¹ÄÜ¸÷¸ö¶Ë¿ÚÊ±ÖÓ£¬ÖØÒª£¡£¡£¡
+    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG,ENABLE); //ä½¿èƒ½å„ä¸ªç«¯å£æ—¶é’Ÿï¼Œé‡è¦ï¼ï¼ï¼
 
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;										//ÅäÖÃLED¶Ë¿Ú¹Ò½Óµ½6¡¢12¡¢13¶Ë¿Ú
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	   	//Í¨ÓÃÊä³öÍÆÍì
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	   	//ÅäÖÃ¶Ë¿ÚËÙ¶ÈÎª50M
-    GPIO_Init(GPIOG, &GPIO_InitStructure);				   	//¸ù¾İ²ÎÊı³õÊ¼»¯GPIOD¼Ä´æÆ÷RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG | RCC_APB2Periph_GPIOE,ENABLE);	//Ê¹ÄÜ¸÷¸ö¶Ë¿ÚÊ±ÖÓ£¬ÖØÒª£¡£¡£¡
+    GPIO_InitStructure.GPIO_Pin = GPIO_PIN_14;      //é…ç½®LEDç«¯å£æŒ‚æ¥åˆ°6ã€12ã€13ç«¯å£
+    GPIO_InitStructure.GPIO_Pin = GPIO_PIN_14;          //é…ç½®LEDç«¯å£æŒ‚æ¥åˆ°6ã€12ã€13ç«¯å£
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;     //é€šç”¨è¾“å‡ºæ¨æŒ½
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;     //é…ç½®ç«¯å£é€Ÿåº¦ä¸º50M
+    GPIO_Init(GPIOG, &GPIO_InitStructure);        //æ ¹æ®å‚æ•°åˆå§‹åŒ–GPIODå¯„å­˜å™¨RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG | RCC_APB2Periph_GPIOE,ENABLE); //ä½¿èƒ½å„ä¸ªç«¯å£æ—¶é’Ÿï¼Œé‡è¦ï¼ï¼ï¼
 
-    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD,ENABLE);	//Ê¹ÄÜ¸÷¸ö¶Ë¿ÚÊ±ÖÓ£¬ÖØÒª£¡£¡£¡
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;										//ÅäÖÃLED¶Ë¿Ú¹Ò½Óµ½6¡¢12¡¢13¶Ë¿Ú
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	   	//Í¨ÓÃÊä³öÍÆÍì
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	   	//ÅäÖÃ¶Ë¿ÚËÙ¶ÈÎª50M
-    GPIO_Init(GPIOD, &GPIO_InitStructure);				   	//¸ù¾İ²ÎÊı³õÊ¼»¯GPIOD¼Ä´æÆ÷
+    RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD,ENABLE); //ä½¿èƒ½å„ä¸ªç«¯å£æ—¶é’Ÿï¼Œé‡è¦ï¼ï¼ï¼
+    GPIO_InitStructure.GPIO_Pin = GPIO_PIN_13;          //é…ç½®LEDç«¯å£æŒ‚æ¥åˆ°6ã€12ã€13ç«¯å£
+    GPIO_InitStructure.GPIO_Pin = GPIO_PIN_13;          //é…ç½®LEDç«¯å£æŒ‚æ¥åˆ°6ã€12ã€13ç«¯å£
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;     //é€šç”¨è¾“å‡ºæ¨æŒ½
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;     //é…ç½®ç«¯å£é€Ÿåº¦ä¸º50M
+    GPIO_Init(GPIOD, &GPIO_InitStructure);        //æ ¹æ®å‚æ•°åˆå§‹åŒ–GPIODå¯„å­˜å™¨
 
 
 }
 
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-** º¯ÊıÃû³Æ: Init_NVIC
-** ¹¦ÄÜÃèÊö: ÏµÍ³ÖĞ¶ÏÅäÖÃ
-** ²ÎÊıÃèÊö£ºÎŞ
-** ×÷  ¡¡Õß: Dream
-** ÈÕ¡¡  ÆÚ: 2011Äê5ÔÂ14ÈÕ
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+ ** å‡½æ•°åç§°: Init_NVIC
+ ** åŠŸèƒ½æè¿°: ç³»ç»Ÿä¸­æ–­é…ç½®
+ ** å‚æ•°æè¿°ï¼šæ— 
+ ** ä½œ  ã€€è€…: Dream
+ ** æ—¥ã€€  æœŸ: 2011å¹´5æœˆ14æ—¥
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 void Init_NVIC(void)
 {
-  	NVIC_InitTypeDef NVIC_InitStructure;			//¶¨ÒåÒ»¸öNVICÏòÁ¿±í½á¹¹Ìå±äÁ¿
+    NVIC_InitTypeDef NVIC_InitStructure;   //å®šä¹‰ä¸€ä¸ªNVICå‘é‡è¡¨ç»“æ„ä½“å˜é‡
 
-	#ifdef  VECT_TAB_RAM  							//ÏòÁ¿±í»ùµØÖ·Ñ¡Ôñ
+#ifdef  VECT_TAB_RAM         //å‘é‡è¡¨åŸºåœ°å€é€‰æ‹©
 
-	  NVIC_SetVectorTable(NVIC_VectTab_RAM, 0x0);  	//½«0x20000000µØÖ·×÷ÎªÏòÁ¿±í»ùµØÖ·(RAM)
-	#else
+    NVIC_SetVectorTable(NVIC_VectTab_RAM, 0x0);   //å°†0x20000000åœ°å€ä½œä¸ºå‘é‡è¡¨åŸºåœ°å€(RAM)
+#else
 
-	  NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0); //½«0x08000000µØÖ·×÷ÎªÏòÁ¿±í»ùµØÖ·(FLASH)
-	#endif
+    NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0); //å°†0x08000000åœ°å€ä½œä¸ºå‘é‡è¡¨åŸºåœ°å€(FLASH)
+#endif
 
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);	//ÉèÖÃÖĞ¶Ï×é Îª2
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); //è®¾ç½®ä¸­æ–­ç»„ ä¸º2
 
-	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;			//ÅäÖÃ´®¿Ú2ÎªÖĞ¶ÏÔ´
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2; 	//ÉèÖÃÕ¼ÏÈÓÅÏÈ¼¶Îª2
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;		  	//ÉèÖÃ¸±ÓÅÏÈ¼¶Îª0
-	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			  	//Ê¹ÄÜ´®¿Ú1ÖĞ¶Ï
-	NVIC_Init(&NVIC_InitStructure);							  	//¸ù¾İ²ÎÊı³õÊ¼»¯ÖĞ¶Ï¼Ä´æÆ÷
+    NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;   //é…ç½®ä¸²å£2ä¸ºä¸­æ–­æº
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;  //è®¾ç½®å å…ˆä¼˜å…ˆçº§ä¸º2
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;     //è®¾ç½®å‰¯ä¼˜å…ˆçº§ä¸º0
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;      //ä½¿èƒ½ä¸²å£1ä¸­æ–­
+    NVIC_Init(&NVIC_InitStructure);          //æ ¹æ®å‚æ•°åˆå§‹åŒ–ä¸­æ–­å¯„å­˜å™¨
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-** º¯ÊıÃû³Æ: Delay_Ms_Ms
-** ¹¦ÄÜÃèÊö: ÑÓÊ±1MS (¿ÉÍ¨¹ı·ÂÕæÀ´ÅĞ¶ÏËûµÄ×¼È·¶È)
-** ²ÎÊıÃèÊö£ºtime (ms) ×¢Òâtime<65535
-** ×÷  ¡¡Õß: Dream
-** ÈÕ¡¡  ÆÚ: 2011Äê6ÔÂ20ÈÕ
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-void Delay_Ms(uint16_t time)  //ÑÓÊ±º¯Êı
+ ** å‡½æ•°åç§°: Delay_Ms_Ms
+ ** åŠŸèƒ½æè¿°: å»¶æ—¶1MS (å¯é€šè¿‡ä»¿çœŸæ¥åˆ¤æ–­ä»–çš„å‡†ç¡®åº¦)
+ ** å‚æ•°æè¿°ï¼štime (ms) æ³¨æ„time<65535
+ ** ä½œ  ã€€è€…: Dream
+ ** æ—¥ã€€  æœŸ: 2011å¹´6æœˆ20æ—¥
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+void Delay_Ms(uint16_t time)  //å»¶æ—¶å‡½æ•°
 {
-	uint16_t i,j;
-	for(i=0;i<time;i++)
-  		for(j=0;j<10260;j++);
+    uint16_t i,j;
+    for(i=0;i<time;i++)
+        for(j=0;j<10260;j++);
 }
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-** º¯ÊıÃû³Æ: Delay_Ms_Us
-** ¹¦ÄÜÃèÊö: ÑÓÊ±1us (¿ÉÍ¨¹ı·ÂÕæÀ´ÅĞ¶ÏËûµÄ×¼È·¶È)
-** ²ÎÊıÃèÊö£ºtime (us) ×¢Òâtime<65535
-** ×÷  ¡¡Õß: Dream
-** ÈÕ¡¡  ÆÚ: 2011Äê6ÔÂ20ÈÕ
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-void Delay_Us(uint16_t time)  //ÑÓÊ±º¯Êı
+ ** å‡½æ•°åç§°: Delay_Ms_Us
+ ** åŠŸèƒ½æè¿°: å»¶æ—¶1us (å¯é€šè¿‡ä»¿çœŸæ¥åˆ¤æ–­ä»–çš„å‡†ç¡®åº¦)
+ ** å‚æ•°æè¿°ï¼štime (us) æ³¨æ„time<65535
+ ** ä½œ  ã€€è€…: Dream
+ ** æ—¥ã€€  æœŸ: 2011å¹´6æœˆ20æ—¥
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+void Delay_Us(uint16_t time)  //å»¶æ—¶å‡½æ•°
 {
-	uint16_t i,j;
-	for(i=0;i<time;i++)
-  		for(j=0;j<9;j++);
+    uint16_t i,j;
+    for(i=0;i<time;i++)
+        for(j=0;j<9;j++);
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-** º¯ÊıÃû³Æ: Init_RFID
-** ¹¦ÄÜÃèÊö: ³õÊ¼»¯RFID
-** ²ÎÊıÃèÊö£º
-** ×÷  ¡¡Õß: Dream
-** ÈÕ¡¡  ÆÚ: 2011Äê6ÔÂ20ÈÕ
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-void Init_RFID()  //³õÊ¼»¯RFID
+ ** å‡½æ•°åç§°: Init_RFID
+ ** åŠŸèƒ½æè¿°: åˆå§‹åŒ–RFID
+ ** å‚æ•°æè¿°ï¼š
+ ** ä½œ  ã€€è€…: Dream
+ ** æ—¥ã€€  æœŸ: 2011å¹´6æœˆ20æ—¥
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+void Init_RFID()  //åˆå§‹åŒ–RFID
 {
-	;
+    ;
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : CheckSum
-* ÃèÊö           : ÃüÁîĞ£Ñé¡£
-* ÊäÈë           : 	dat : ÒªĞ£ÑéµÄÊı×é¡£
-										num : Ğ£ÑéµÄ×Ö½ÚÊı¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : Ğ£ÑéÖµ¡£
-*******************************************************************************/
+ * å‡½æ•°å         : CheckSum
+ * æè¿°           : å‘½ä»¤æ ¡éªŒã€‚
+ * è¾“å…¥           :  dat : è¦æ ¡éªŒçš„æ•°ç»„ã€‚
+num : æ ¡éªŒçš„å­—èŠ‚æ•°ã€‚
+ * è¾“å‡º           : æ— 
+ * è¿”å›           : æ ¡éªŒå€¼ã€‚
+ *******************************************************************************/
 unsigned char CheckSum(unsigned char *dat, unsigned char num)
 {
-  unsigned char bTemp = 0, i;
+    unsigned char bTemp = 0, i;
 
-  for(i = 0; i < num; i ++){bTemp ^= dat[i];}
-  return bTemp;
+    for(i = 0; i < num; i ++){bTemp ^= dat[i];}
+    return bTemp;
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : SendCommand
-* ÃèÊö           : ÃüÁî¿ªÊ¼·¢ËÍº¯Êı¡£
-* ÊäÈë           : ÎŞ
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
-*******************************************************************************/
+ * å‡½æ•°å         : SendCommand
+ * æè¿°           : å‘½ä»¤å¼€å§‹å‘é€å‡½æ•°ã€‚
+ * è¾“å…¥           : æ— 
+ * è¾“å‡º           : æ— 
+ * è¿”å›           : æ— 
+ *******************************************************************************/
 void SendCommand(void)
 {
-	while(Cmd.SendFlag != 0);
-	Cmd.SendFlag = 1;
-	Cmd.SendBuffer[Cmd.SendBuffer[0]] = CheckSum(Cmd.SendBuffer, Cmd.SendBuffer[0]);
-	Cmd.SendPoint = Cmd.SendBuffer[0] + 1;
-	USART_SendData(USART2, 0x7F);
+    while(Cmd.SendFlag != 0);
+    Cmd.SendFlag = 1;
+    Cmd.SendBuffer[Cmd.SendBuffer[0]] = CheckSum(Cmd.SendBuffer, Cmd.SendBuffer[0]);
+    Cmd.SendPoint = Cmd.SendBuffer[0] + 1;
+    USART_SendData(USART2, 0x7F);
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : LCDNumber
-* ÃèÊö           : Íù 12864 Ğ´Êı×Ö
-* ÊäÈë           : address: µØÖ·
-                   number : Êı×Ö
-                   count  : Êı×ÖÏÔÊ¾µÄ³¤¶È
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
-*******************************************************************************/
+ * å‡½æ•°å         : LCDNumber
+ * æè¿°           : å¾€ 12864 å†™æ•°å­—
+ * è¾“å…¥           : address: åœ°å€
+ number : æ•°å­—
+ count  : æ•°å­—æ˜¾ç¤ºçš„é•¿åº¦
+ * è¾“å‡º           : æ— 
+ * è¿”å›           : æ— 
+ *******************************************************************************/
 void LongToStr( char *array, unsigned long number, unsigned char count)
 {
-//	unsigned char array[11];
-	unsigned char i;
+    // unsigned char array[11];
+    unsigned char i;
 
-	array[count] = 0;
-	for(i = count; i > 0; i --){array[i-1] = number % 10+'0';number /= 10;}
-	for(i = 0; i < count-1; i ++){if(array[i]=='0'){array[i] = ' ';}else{break;}}
+    array[count] = 0;
+    for(i = count; i > 0; i --){array[i-1] = number % 10+'0';number /= 10;}
+    for(i = 0; i < count-1; i ++){if(array[i]=='0'){array[i] = ' ';}else{break;}}
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : Init_LCDSTRUCT
-* ÃèÊö           : ³õÊ¼»¯LCDSTRUCT½á¹¹Ìå,È«²¿¸³Öµ¿Õ
-* ÊäÈë           : ¿Õ
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
-*******************************************************************************/
+ * å‡½æ•°å         : Init_LCDSTRUCT
+ * æè¿°           : åˆå§‹åŒ–LCDSTRUCTç»“æ„ä½“,å…¨éƒ¨èµ‹å€¼ç©º
+ * è¾“å…¥           : ç©º
+ * è¾“å‡º           : æ— 
+ * è¿”å›           : æ— 
+ *******************************************************************************/
 void Init_LCDSTRUCT()
 {
-	strcpy(LCDSTRUCT.Name,"");
-	strcpy(LCDSTRUCT.UserID,"");
-	strcpy(LCDSTRUCT.PhoneNum,"");
-	strcpy(LCDSTRUCT.UdiskInfo,"");
-	strcpy(LCDSTRUCT.UdiskState,"");
-	strcpy(LCDSTRUCT.Temperature,"");
-	strcpy(LCDSTRUCT.TimeNow,"");
+    strcpy(LCDSTRUCT.Name,"");
+    strcpy(LCDSTRUCT.UserID,"");
+    strcpy(LCDSTRUCT.PhoneNum,"");
+    strcpy(LCDSTRUCT.UdiskInfo,"");
+    strcpy(LCDSTRUCT.UdiskState,"");
+    strcpy(LCDSTRUCT.Temperature,"");
+    strcpy(LCDSTRUCT.TimeNow,"");
 
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-** º¯ÊıÃû³Æ: LCDUpdate
-** ¹¦ÄÜÃèÊö: Ë¢ĞÂLCD
-** ²ÎÊıÃèÊö£ºÎŞ
-** ×÷  ¡¡Õß: Dream
-** ÈÕ¡¡  ÆÚ: 2011Äê6ÔÂ20ÈÕ
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+ ** å‡½æ•°åç§°: LCDUpdate
+ ** åŠŸèƒ½æè¿°: åˆ·æ–°LCD
+ ** å‚æ•°æè¿°ï¼šæ— 
+ ** ä½œ  ã€€è€…: Dream
+ ** æ—¥ã€€  æœŸ: 2011å¹´6æœˆ20æ—¥
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 void LCDUpdate(char stype)
 {
-  char Name_Array[64];
-	char UserID_Array[64];
-	char UdiskInfo_Array2[64];
-  char PhoneNum_Array[64];
-	char UdiskInfo_Array[64];
-	char UdiskState_Array[64];
-  char Temperature_Array[64];
-	char TimeNow_Array[64];
+    char Name_Array[64];
+    char UserID_Array[64];
+    char UdiskInfo_Array2[64];
+    char PhoneNum_Array[64];
+    char UdiskInfo_Array[64];
+    char UdiskState_Array[64];
+    char Temperature_Array[64];
+    char TimeNow_Array[64];
 
-	switch(stype)
-	{
+    switch(stype)
+    {
 
-		case 'a':
-			{
+        case 'a':
+            {
 
-				strcpy(Name_Array,"DS16(100,24,'");strcat(Name_Array,LCDSTRUCT.Name);strcat(Name_Array,"',4);");
-				strcpy(UserID_Array,"DS16(100,48,'");strcat(UserID_Array,LCDSTRUCT.UserID);strcat(UserID_Array,"',4);");
-				strcpy(PhoneNum_Array,"DS16(100,72,'");strcat(PhoneNum_Array,LCDSTRUCT.PhoneNum);strcat(PhoneNum_Array,"',4);");
-				strcpy(UdiskInfo_Array,"DS16(80,96,'");strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);strcat(UdiskInfo_Array,"',4);");
-				strcpy(UdiskInfo_Array2,"DS16(200,96,'");strcat(UdiskInfo_Array2,LCDSTRUCT.UdiskInfo2);strcat(UdiskInfo_Array2,"',4);");
-				strcpy(UdiskState_Array,"DS16(100,120,'");strcat(UdiskState_Array,LCDSTRUCT.UdiskState);strcat(UdiskState_Array,"',4);");
-				strcpy(Temperature_Array,"DS16(100,144,'");strcat(Temperature_Array,LCDSTRUCT.Temperature);strcat(Temperature_Array,"',4);");
-				strcpy(TimeNow_Array,"DS16(100,168,'");strcat(TimeNow_Array,LCDSTRUCT.TimeNow);strcat(TimeNow_Array,"',4);");
+                strcpy(Name_Array,"DS16(100,24,'");strcat(Name_Array,LCDSTRUCT.Name);strcat(Name_Array,"',4);");
+                strcpy(UserID_Array,"DS16(100,48,'");strcat(UserID_Array,LCDSTRUCT.UserID);strcat(UserID_Array,"',4);");
+                strcpy(PhoneNum_Array,"DS16(100,72,'");strcat(PhoneNum_Array,LCDSTRUCT.PhoneNum);strcat(PhoneNum_Array,"',4);");
+                strcpy(UdiskInfo_Array,"DS16(80,96,'");strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);strcat(UdiskInfo_Array,"',4);");
+                strcpy(UdiskInfo_Array2,"DS16(200,96,'");strcat(UdiskInfo_Array2,LCDSTRUCT.UdiskInfo2);strcat(UdiskInfo_Array2,"',4);");
+                strcpy(UdiskState_Array,"DS16(100,120,'");strcat(UdiskState_Array,LCDSTRUCT.UdiskState);strcat(UdiskState_Array,"',4);");
+                strcpy(Temperature_Array,"DS16(100,144,'");strcat(Temperature_Array,LCDSTRUCT.Temperature);strcat(Temperature_Array,"',4);");
+                strcpy(TimeNow_Array,"DS16(100,168,'");strcat(TimeNow_Array,LCDSTRUCT.TimeNow);strcat(TimeNow_Array,"',4);");
 
-				Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
-				Lcd_Display("CLS(0);DS16(100,0,'SITP UÅÌ¹ÜÀíÏµÍ³',16);");
-				Lcd_Display("DS16(4,24,'ĞÕÃû£º',15);");	     Lcd_Display(Name_Array);
-				Lcd_Display("DS16(4,48,'¿¨ºÅ£º',4);");	       Lcd_Display(UserID_Array);
-				Lcd_Display("DS16(4,72,'ÁªÏµµç»°£º',15);");	 Lcd_Display(PhoneNum_Array);
-				Lcd_Display("DS16(4,96,'UÅÌĞÅÏ¢£º',4);");	   Lcd_Display(UdiskInfo_Array);Lcd_Display(UdiskInfo_Array2);
-				Lcd_Display("DS16(4,120,'½è/»¹×´Ì¬£º',4);");   Lcd_Display(UdiskState_Array);
-				Lcd_Display("DS16(4,144,'ÊÒÄÚÎÂ¶È£º',15);");   Lcd_Display(Temperature_Array);
-				Lcd_Display("DS16(4,168,'ÈÕÆÚ/Ê±¼ä£º',15);");  Lcd_Display(TimeNow_Array);
-			}break;
-	 case 'n':
-	    {
-				strcpy(Name_Array,"DS16(100,24,'");strcat(Name_Array,LCDSTRUCT.Name);strcat(Name_Array,"',4);");
+                Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
+                Lcd_Display("CLS(0);DS16(100,0,'SITP Uç›˜ç®¡ç†ç³»ç»Ÿ',16);");
+                Lcd_Display("DS16(4,24,'å§“åï¼š',15);");      Lcd_Display(Name_Array);
+                Lcd_Display("DS16(4,48,'å¡å·ï¼š',4);");        Lcd_Display(UserID_Array);
+                Lcd_Display("DS16(4,72,'è”ç³»ç”µè¯ï¼š',15);");  Lcd_Display(PhoneNum_Array);
+                Lcd_Display("DS16(4,96,'Uç›˜ä¿¡æ¯ï¼š',4);");    Lcd_Display(UdiskInfo_Array);Lcd_Display(UdiskInfo_Array2);
+                Lcd_Display("DS16(4,120,'å€Ÿ/è¿˜çŠ¶æ€ï¼š',4);");   Lcd_Display(UdiskState_Array);
+                Lcd_Display("DS16(4,144,'å®¤å†…æ¸©åº¦ï¼š',15);");   Lcd_Display(Temperature_Array);
+                Lcd_Display("DS16(4,168,'æ—¥æœŸ/æ—¶é—´ï¼š',15);");  Lcd_Display(TimeNow_Array);
+            }break;
+        case 'n':
+            {
+                strcpy(Name_Array,"DS16(100,24,'");strcat(Name_Array,LCDSTRUCT.Name);strcat(Name_Array,"',4);");
 
-				Lcd_Display("CLS(0);DS16(100,0,'SITP UÅÌ¹ÜÀíÏµÍ³',16);");
-				Lcd_Display(Name_Array);
-		  }break;
-	 case 'u':
-	    {
-			 strcpy(UserID_Array,"DS16(100,48,'");strcat(UserID_Array,LCDSTRUCT.UserID);strcat(UserID_Array,"',4);");Lcd_Display(UserID_Array);
-				LED2=~LED2;
-		  }break;
-	 case 'p':
-	    {
-			 strcpy(PhoneNum_Array,"DS16(100,72,'");strcat(PhoneNum_Array,LCDSTRUCT.PhoneNum);strcat(PhoneNum_Array,"',4);");Lcd_Display(PhoneNum_Array);
-		  }break;
-	 case 'i':
-	    {
-			 strcpy(UdiskInfo_Array,"DS16(100,96,'");strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);strcat(UdiskInfo_Array,"',4);");Lcd_Display(UdiskInfo_Array);
-		  }break;
-	 case 's':
-	    {
-			 strcpy(UdiskState_Array,"DS16(100,120,'");strcat(UdiskState_Array,LCDSTRUCT.UdiskState);strcat(UdiskState_Array,"',4);");Lcd_Display(UdiskState_Array);
-		  }break;
-	 case 't':
-	    {
-			 strcpy(Temperature_Array,"DS16(100,144,'");strcat(Temperature_Array,LCDSTRUCT.Temperature);strcat(Temperature_Array,"',4);");Lcd_Display(Temperature_Array);
-		  }break;
-	  case 'd':
-	    {
-			 strcpy(TimeNow_Array,"DS16(100,168,'");strcat(TimeNow_Array,LCDSTRUCT.TimeNow);strcat(TimeNow_Array,"',4);");Lcd_Display(TimeNow_Array);
-		  }break;
-	  case 'e':
-	    {
-			  Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
-				Lcd_Display("CLS(0);DS16(100,0,'SITP UÅÌ¹ÜÀíÏµÍ³',16);");
+                Lcd_Display("CLS(0);DS16(100,0,'SITP Uç›˜ç®¡ç†ç³»ç»Ÿ',16);");
+                Lcd_Display(Name_Array);
+            }break;
+        case 'u':
+            {
+                strcpy(UserID_Array,"DS16(100,48,'");strcat(UserID_Array,LCDSTRUCT.UserID);strcat(UserID_Array,"',4);");Lcd_Display(UserID_Array);
+                LED2=~LED2;
+            }break;
+        case 'p':
+            {
+                strcpy(PhoneNum_Array,"DS16(100,72,'");strcat(PhoneNum_Array,LCDSTRUCT.PhoneNum);strcat(PhoneNum_Array,"',4);");Lcd_Display(PhoneNum_Array);
+            }break;
+        case 'i':
+            {
+                strcpy(UdiskInfo_Array,"DS16(100,96,'");strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);strcat(UdiskInfo_Array,"',4);");Lcd_Display(UdiskInfo_Array);
+            }break;
+        case 's':
+            {
+                strcpy(UdiskState_Array,"DS16(100,120,'");strcat(UdiskState_Array,LCDSTRUCT.UdiskState);strcat(UdiskState_Array,"',4);");Lcd_Display(UdiskState_Array);
+            }break;
+        case 't':
+            {
+                strcpy(Temperature_Array,"DS16(100,144,'");strcat(Temperature_Array,LCDSTRUCT.Temperature);strcat(Temperature_Array,"',4);");Lcd_Display(Temperature_Array);
+            }break;
+        case 'd':
+            {
+                strcpy(TimeNow_Array,"DS16(100,168,'");strcat(TimeNow_Array,LCDSTRUCT.TimeNow);strcat(TimeNow_Array,"',4);");Lcd_Display(TimeNow_Array);
+            }break;
+        case 'e':
+            {
+                Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
+                Lcd_Display("CLS(0);DS16(100,0,'SITP Uç›˜ç®¡ç†ç³»ç»Ÿ',16);");
 
-		  }break;
-	}
+            }break;
+    }
 
 
 
@@ -641,25 +617,25 @@ void LCDUpdate(char stype)
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-** º¯ÊıÃû³Æ: uchar2str
-** ¹¦ÄÜÃèÊö: Ë¢ĞÂLCD
-** ²ÎÊıÃèÊö£ºÎŞ
-** ×÷  ¡¡Õß: cuikun
-** ÈÕ¡¡  ÆÚ: 2011Äê6ÔÂ20ÈÕ
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+ ** å‡½æ•°åç§°: uchar2str
+ ** åŠŸèƒ½æè¿°: åˆ·æ–°LCD
+ ** å‚æ•°æè¿°ï¼šæ— 
+ ** ä½œ  ã€€è€…: cuikun
+ ** æ—¥ã€€  æœŸ: 2011å¹´6æœˆ20æ—¥
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 void uchar2str(unsigned char i,unsigned char * strname)
 {
-	 unsigned j,k,m=0;
-   k=i/100;
-	 if(k>0) {strname[m++]=k+0x30;}
+    unsigned j,k,m=0;
+    k=i/100;
+    if(k>0) {strname[m++]=k+0x30;}
 
-   k=(i-k*100)/10;
-   if(k>0) {strname[m++]=k+0x30;}
+    k=(i-k*100)/10;
+    if(k>0) {strname[m++]=k+0x30;}
 
-   k=i%10;
-   if(k>0) {strname[m++]=k+0x30;}
+    k=i%10;
+    if(k>0) {strname[m++]=k+0x30;}
 
-   strname[m]='\0';
+    strname[m]='\0';
 
 
 
@@ -667,291 +643,291 @@ void uchar2str(unsigned char i,unsigned char * strname)
 
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-** º¯ÊıÃû³Æ: LCDShowUpanState
-** ¹¦ÄÜÃèÊö: Ë¢ĞÂLCD
-** ²ÎÊıÃèÊö£ºÎŞ
-** ×÷  ¡¡Õß: cuikun
-** ÈÕ¡¡  ÆÚ: 2011Äê6ÔÂ20ÈÕ
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+ ** å‡½æ•°åç§°: LCDShowUpanState
+ ** åŠŸèƒ½æè¿°: åˆ·æ–°LCD
+ ** å‚æ•°æè¿°ï¼šæ— 
+ ** ä½œ  ã€€è€…: cuikun
+ ** æ—¥ã€€  æœŸ: 2011å¹´6æœˆ20æ—¥
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 int LCDShowUpanState(unsigned char * filename)
 {
-	 char space[4]="  ";
-	 char norm[6]="Õı³£";
-	 char borrow[6]="½è³ö";
-   char strtmp[30]="";
-	 char Uinfolist[64]="";
-	unsigned char namearray[10]="";
-	unsigned char serialarray[11]="";
-  BYTE upantemp[40];
-	char firstline[20]="";
+    char space[4]="  ";
+    char norm[6]="æ­£å¸¸";
+    char borrow[6]="å€Ÿå‡º";
+    char strtmp[30]="";
+    char Uinfolist[64]="";
+    unsigned char namearray[10]="";
+    unsigned char serialarray[11]="";
+    BYTE upantemp[40];
+    char firstline[20]="";
 
-  unsigned char i,j=0;
-	unsigned char pos[4]="";
+    unsigned char i,j=0;
+    unsigned char pos[4]="";
 
 
-  br=1;
-	i=0;j=0;
+    br=1;
+    i=0;j=0;
 
-	Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
-	Lcd_Display("CLS(0);DS16(100,0,'SITP UÅÌ¹ÜÀíÏµÍ³',16);");
+    Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
+    Lcd_Display("CLS(0);DS16(100,0,'SITP Uç›˜ç®¡ç†ç³»ç»Ÿ',16);");
 
-	res=f_open(&fdrd,filename, FA_OPEN_EXISTING | FA_READ);
-	if(res)
+    res=f_open(&fdrd,filename, FA_OPEN_EXISTING | FA_READ);
+    if(res)
     {
         printf("not open");
-		    return -1;
+        return -1;
     }
-	for(;;)
-		{
-			res = f_read( &fdrd, filetemp, upanstrall, &br );
-			if (res||br<upanstrall) break;
-			else
-			{
-				if (filetemp[18]=='0')
-				{
-					memcpy(strtmp,filetemp+12,5);
-					memcpy(strtmp+5,space,2);
-					memcpy(strtmp+7,norm,4);
-					strtmp[11]='\0';
-					printf(strtmp);printf("\r\n");
+    for(;;)
+    {
+        res = f_read( &fdrd, filetemp, upanstrall, &br );
+        if (res||br<upanstrall) break;
+        else
+        {
+            if (filetemp[18]=='0')
+            {
+                memcpy(strtmp,filetemp+12,5);
+                memcpy(strtmp+5,space,2);
+                memcpy(strtmp+7,norm,4);
+                strtmp[11]='\0';
+                printf(strtmp);printf("\r\n");
 
-				}
-				else if(filetemp[18]=='1')
-				{
-					memcpy(upantemp,filetemp,40);
-					memcpy(serialarray,filetemp+20,10);serialarray[10]='\0';
+            }
+            else if(filetemp[18]=='1')
+            {
+                memcpy(upantemp,filetemp,40);
+                memcpy(serialarray,filetemp+20,10);serialarray[10]='\0';
 
-				  checkserial(userfilename,serialarray,namearray);
+                checkserial(userfilename,serialarray,namearray);
 
-					memcpy(strtmp,upantemp+12,5);
-					memcpy(strtmp+5,space,2);
-					memcpy(strtmp+7,borrow,4);
-					memcpy(strtmp+11,space,2);
-					strtmp[13]='\0';
-					strcat(strtmp,namearray);
-					printf(strtmp);printf("\r\n");
+                memcpy(strtmp,upantemp+12,5);
+                memcpy(strtmp+5,space,2);
+                memcpy(strtmp+7,borrow,4);
+                memcpy(strtmp+11,space,2);
+                strtmp[13]='\0';
+                strcat(strtmp,namearray);
+                printf(strtmp);printf("\r\n");
+
+            }
+            i++;
+            j=i*24;
+            uchar2str(j,pos);
+            strcpy(Uinfolist,"DS16(100,");printf(Uinfolist);
+            strcat(Uinfolist,pos);printf(Uinfolist);
+            strcat(Uinfolist,",'");printf(Uinfolist);
+            strcat(Uinfolist,strtmp);printf(Uinfolist);
+            strcat(Uinfolist,"',16);");printf(Uinfolist);printf("\r\n");
+
+            strcpy(firstline,"DS16(4,");
+            strcat(firstline,pos);
+            strcat(firstline,",'å§“åï¼š',16);");
+            printf(firstline);printf("\r\n");
+            Lcd_Display(firstline);
+            Lcd_Display(Uinfolist);
 
         }
-				i++;
-				j=i*24;
-				uchar2str(j,pos);
-				strcpy(Uinfolist,"DS16(100,");printf(Uinfolist);
-				strcat(Uinfolist,pos);printf(Uinfolist);
-				strcat(Uinfolist,",'");printf(Uinfolist);
-				strcat(Uinfolist,strtmp);printf(Uinfolist);
-				strcat(Uinfolist,"',16);");printf(Uinfolist);printf("\r\n");
-
-				strcpy(firstline,"DS16(4,");
-				strcat(firstline,pos);
-				strcat(firstline,",'ĞÕÃû£º',16);");
-				printf(firstline);printf("\r\n");
-				Lcd_Display(firstline);
-				Lcd_Display(Uinfolist);
-
-			}
-	  }
-		f_close(&fdrd);
-		return 0;
-	}
+    }
+    f_close(&fdrd);
+    return 0;
+}
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-** º¯ÊıÃû³Æ: checkserial
-** ¹¦ÄÜÃèÊö: Í¨¹ırfid¶Á³ö¶ÔÓ¦µÄÃû×Ö
-** ²ÎÊıÃèÊö£ºÎŞ
-** ×÷  ¡¡Õß: cuikun
-** ÈÕ¡¡  ÆÚ: 2015Äê7ÔÂ19ÈÕ
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
- int checkserial(unsigned char * filename,unsigned char * serialarraycheck,unsigned char * namearray)
+ ** å‡½æ•°åç§°: checkserial
+ ** åŠŸèƒ½æè¿°: é€šè¿‡rfidè¯»å‡ºå¯¹åº”çš„åå­—
+ ** å‚æ•°æè¿°ï¼šæ— 
+ ** ä½œ  ã€€è€…: cuikun
+ ** æ—¥ã€€  æœŸ: 2015å¹´7æœˆ19æ—¥
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+int checkserial(unsigned char * filename,unsigned char * serialarraycheck,unsigned char * namearray)
 {
 
-	unsigned char namelen=0;
-	unsigned char serialarray[10]="";
+    unsigned char namelen=0;
+    unsigned char serialarray[10]="";
 
-  unsigned int j,k,m=0;
-	unsigned char check_flag=0;
+    unsigned int j,k,m=0;
+    unsigned char check_flag=0;
 
-	 br=1;
+    br=1;
 
 
 
-	res=f_open(&fdrd,filename, FA_OPEN_EXISTING | FA_READ);
-	printf("3 ");
-	if(res)
+    res=f_open(&fdrd,filename, FA_OPEN_EXISTING | FA_READ);
+    printf("3 ");
+    if(res)
     {
         printf("not open");
-		    return -1;
+        return -1;
     }
-	printf("4 ");
-	for(;;)
-		{
-			res = f_read( &fdrd, filetemp, strall, &br );
-		printf("%02x ",res);
-			if (res||br==0) break;
-			else
-			{
-				if (filetemp[0]=='@')
-				{
-					for(j=1;j<=serialnum;j++)
-					{
-						serialarray[j-1]=filetemp[j];
-						check_flag=serialarray[j-1]-serialarraycheck[j-1];
-						if (check_flag) break;
-					}
-					if (!check_flag)
-					{
-						for (k=j;k<strall;k++)
-						{
-							if ((filetemp[k]!=' ')&&(filetemp[k]!=0x0a) &&(filetemp[k]!=0x0d) )
-							{
-								namearray[m++]=filetemp[k];
-								namelen++;
+    printf("4 ");
+    for(;;)
+    {
+        res = f_read( &fdrd, filetemp, strall, &br );
+        printf("%02x ",res);
+        if (res||br==0) break;
+        else
+        {
+            if (filetemp[0]=='@')
+            {
+                for(j=1;j<=serialnum;j++)
+                {
+                    serialarray[j-1]=filetemp[j];
+                    check_flag=serialarray[j-1]-serialarraycheck[j-1];
+                    if (check_flag) break;
+                }
+                if (!check_flag)
+                {
+                    for (k=j;k<strall;k++)
+                    {
+                        if ((filetemp[k]!=' ')&&(filetemp[k]!=0x0a) &&(filetemp[k]!=0x0d) )
+                        {
+                            namearray[m++]=filetemp[k];
+                            namelen++;
 
-							}
-						}
-						namearray[m]='\0';
-						return namelen;
-					}
-				}
-			}
-	  }
-		printf("5 ");
-		f_close(&fdrd);
-		return 0;
+                        }
+                    }
+                    namearray[m]='\0';
+                    return namelen;
+                }
+            }
+        }
+    }
+    printf("5 ");
+    f_close(&fdrd);
+    return 0;
 
 }
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-** º¯ÊıÃû³Æ: writelog
-** ¹¦ÄÜÃèÊö: Ğ´ÈëlogÈÕÖ¾ÎÄ¼ş
-** ²ÎÊıÃèÊö£ºÎŞ
-** ×÷  ¡¡Õß: cuikun
-** ÈÕ¡¡  ÆÚ: 2015Äê7ÔÂ19ÈÕ
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
- int writelog(unsigned char * filename,unsigned char * filecontent,unsigned char lencont,unsigned char sflag )
- {
+ ** å‡½æ•°åç§°: writelog
+ ** åŠŸèƒ½æè¿°: å†™å…¥logæ—¥å¿—æ–‡ä»¶
+ ** å‚æ•°æè¿°ï¼šæ— 
+ ** ä½œ  ã€€è€…: cuikun
+ ** æ—¥ã€€  æœŸ: 2015å¹´7æœˆ19æ—¥
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+int writelog(unsigned char * filename,unsigned char * filecontent,unsigned char lencont,unsigned char sflag )
+{
 
-   bw=1  ;
+    bw=1  ;
 
-	 if(sflag==0)
-	 {
-      res = f_open(&fdwr,filename,FA_CREATE_ALWAYS| FA_WRITE);
-			if(res)
-			 {
-				 printf("not open");
-				 return -1 ;
-			 }
-	 }
-   else if(sflag==1)
-   {
-		 res = f_open(&fdwr,filename,FA_OPEN_ALWAYS| FA_WRITE);
-		 if(res)
-			 {
-				 printf("not open");
-				 return -1 ;
-			 }
-		 f_lseek(&fdwr,fdwr.fsize);
-	 }
-
-   res = f_write(&fdwr, filecontent, lencont, &bw);
-	 if(res)
-		 printf("write error!\n");
-   f_close(&fdwr);
-
-	 return 0;
-
-
- }
-
- /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-** º¯ÊıÃû³Æ: writelog
-** ¹¦ÄÜÃèÊö: Ğ´ÈëlogÈÕÖ¾ÎÄ¼ş
-** ²ÎÊıÃèÊö£ºÎŞ
-** ×÷  ¡¡Õß: cuikun
-** ÈÕ¡¡  ÆÚ: 2015Äê7ÔÂ19ÈÕ
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
- int printallfile(unsigned char * filename )
- {
-	unsigned int plen;
-	br=1;
-
-	res=f_open(&fdrd,filename, FA_OPEN_EXISTING | FA_READ);
-	if(res)
+    if(sflag==0)
     {
-        printf("not open");
-		    return -1;
+        res = f_open(&fdwr,filename,FA_CREATE_ALWAYS| FA_WRITE);
+        if(res)
+        {
+            printf("not open");
+            return -1 ;
+        }
+    }
+    else if(sflag==1)
+    {
+        res = f_open(&fdwr,filename,FA_OPEN_ALWAYS| FA_WRITE);
+        if(res)
+        {
+            printf("not open");
+            return -1 ;
+        }
+        f_lseek(&fdwr,fdwr.fsize);
     }
 
-	if(gflag_send==0)
-		{
-			res =f_read( &fdrd, filetemp, strall, &br );
-			if (res||br==0)
-			{
-				 gflag_send=2;
-				 return -2;
-			}
-			else
-			{
-				if(br<strall)
-				{
-				   filetemp[br]='\0';
-					 gflag_send=2;
-				}
-				else
-				{
-					 filetemp[strall]='\0';
-					 gflag_send=1;
-				}
-				send_count+=strall;
-				plen=fill_tcp_data_p(buf,0,filetemp);
+    res = f_write(&fdwr, filecontent, lencont, &bw);
+    if(res)
+        printf("write error!\n");
+    f_close(&fdwr);
+
+    return 0;
+
+
+}
+
+/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ ** å‡½æ•°åç§°: writelog
+ ** åŠŸèƒ½æè¿°: å†™å…¥logæ—¥å¿—æ–‡ä»¶
+ ** å‚æ•°æè¿°ï¼šæ— 
+ ** ä½œ  ã€€è€…: cuikun
+ ** æ—¥ã€€  æœŸ: 2015å¹´7æœˆ19æ—¥
+ :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+int printallfile(unsigned char * filename )
+{
+    unsigned int plen;
+    br=1;
+
+    res=f_open(&fdrd,filename, FA_OPEN_EXISTING | FA_READ);
+    if(res)
+    {
+        printf("not open");
+        return -1;
+    }
+
+    if(gflag_send==0)
+    {
+        res =f_read( &fdrd, filetemp, strall, &br );
+        if (res||br==0)
+        {
+            gflag_send=2;
+            return -2;
+        }
+        else
+        {
+            if(br<strall)
+            {
+                filetemp[br]='\0';
+                gflag_send=2;
+            }
+            else
+            {
+                filetemp[strall]='\0';
+                gflag_send=1;
+            }
+            send_count+=strall;
+            plen=fill_tcp_data_p(buf,0,filetemp);
+            SendTcp(plen);
+            printf("%d\r\n",gflag_send);
+            printf(filetemp);printf("\r\n");
+
+        }
+    }
+    else if(gflag_send==1)
+    {
+        f_lseek(&fdrd,send_count);
+        res =f_read( &fdrd, filetemp, strall, &br );
+        if (res||br==0)
+        {
+            gflag_send=2;
+            return -2;
+        }
+        else
+        {
+            if(br<strall)
+            {
+                filetemp[br]='\0';
+                gflag_send=2;
+            }
+            else
+            {
+                filetemp[strall]='\0';
+                gflag_send=1;
+            }
+            send_count+=strall;
+            plen=fill_tcp_data_p(buf,0,filetemp);
+            SendTcp(plen);
+            printf("%d\r\n",gflag_send);
+            printf(filetemp);printf("\r\n");
+
+        }
+    }
+    else if(gflag_send==2)
+    {
+        plen=fill_tcp_data_p(buf,0,"lend");
         SendTcp(plen);
-				printf("%d\r\n",gflag_send);
-				printf(filetemp);printf("\r\n");
+        printf("%d\r\n",gflag_send);
+        //printf(filetemp);
 
-	    }
-		}
-	else if(gflag_send==1)
-		{
-			f_lseek(&fdrd,send_count);
-			res =f_read( &fdrd, filetemp, strall, &br );
-			if (res||br==0)
-				{
-				 gflag_send=2;
-				 return -2;
-			  }
-			else
-			{
-				if(br<strall)
-				{
-				   filetemp[br]='\0';
-					 gflag_send=2;
-				}
-				else
-				{
-					 filetemp[strall]='\0';
-					 gflag_send=1;
-				}
-				send_count+=strall;
-				plen=fill_tcp_data_p(buf,0,filetemp);
-        SendTcp(plen);
-				printf("%d\r\n",gflag_send);
-				printf(filetemp);printf("\r\n");
-
-	    }
-		}
-		else if(gflag_send==2)
-		{
-			  plen=fill_tcp_data_p(buf,0,"lend");
-        SendTcp(plen);
-				printf("%d\r\n",gflag_send);
-				//printf(filetemp);
-
-		}
+    }
 
 
-		f_close(&fdrd);
-		return 0;
+    f_close(&fdrd);
+    return 0;
 
 
- }
+}
 
 
 

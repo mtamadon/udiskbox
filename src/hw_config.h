@@ -40,7 +40,8 @@
 #define         ID3          (0x1FFFF7F0)
 
 #define     USB_DISCONNECT                  GPIOB
-#define     USB_DISCONNECT_PIN              GPIO_Pin_0
+#define     USB_DISCONNECT_PIN              GPIO_PIN_0
+#define     USB_DISCONNECT_PIN              GPIO_PIN_0
 #define     RCC_APB2Periph_GPIO_DISCONNECT  RCC_APB2Periph_GPIOB
 
 /* Exported types ------------------------------------------------------------*/

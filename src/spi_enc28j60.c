@@ -1,101 +1,99 @@
-/******************** (C) COPYRIGHT 2011 ÃÔÄãÇ¶ÈëÊ½¿ª·¢¹¤×÷ÊÒ ********************
- * ÎÄ¼şÃû  £ºspi.c
- * ÃèÊö    £ºENC28J60(ÒÔÌ«ÍøĞ¾Æ¬) SPI½Ó¿ÚÓ¦ÓÃº¯Êı¿â
+/******************** (C) COPYRIGHT 2011 è¿·ä½ åµŒå…¥å¼å¼€å‘å·¥ä½œå®¤ ********************
+ * æ–‡ä»¶å  ï¼šspi.c
+ * æè¿°    ï¼šENC28J60(ä»¥å¤ªç½‘èŠ¯ç‰‡) SPIæ¥å£åº”ç”¨å‡½æ•°åº“
  *
- * ÊµÑéÆ½Ì¨£ºÒ°»ğSTM32¿ª·¢°å
- * Ó²¼şÁ¬½Ó£º ------------------------------------
- *           |PB13         £ºENC28J60-INT (Ã»ÓÃµ½)|
- *           |PA6-SPI1-MISO£ºENC28J60-SO          |
- *           |PA7-SPI1-MOSI£ºENC28J60-SI          |
- *           |PA5-SPI1-SCK £ºENC28J60-SCK         |
- *           |PA4-SPI1-NSS £ºENC28J60-CS          |
- *           |PE1          £ºENC28J60-RST (Ã»ÓÃ)  |
+ * å®éªŒå¹³å°ï¼šé‡ç«STM32å¼€å‘æ¿
+ * ç¡¬ä»¶è¿æ¥ï¼š ------------------------------------
+ *           |PB13         ï¼šENC28J60-INT (æ²¡ç”¨åˆ°)|
+ *           |PA6-SPI1-MISOï¼šENC28J60-SO          |
+ *           |PA7-SPI1-MOSIï¼šENC28J60-SI          |
+ *           |PA5-SPI1-SCK ï¼šENC28J60-SCK         |
+ *           |PA4-SPI1-NSS ï¼šENC28J60-CS          |
+ *           |PE1          ï¼šENC28J60-RST (æ²¡ç”¨)  |
  *            ------------------------------------
- * ¿â°æ±¾  £ºST3.0.0
- * ×÷Õß    £ºfire  QQ: 313303034
- * ²©¿Í    £ºfirestm32.blog.chinaunix.net
+ * åº“ç‰ˆæœ¬  ï¼šST3.0.0
+ * ä½œè€…    ï¼šfire  QQ: 313303034
+ * åšå®¢    ï¼šfirestm32.blog.chinaunix.net
 **********************************************************************************/
 #include "spi_enc28j60.h"
-/*#include "stm32f1xx_hal_gpio.h"*/
+#include "stm32f1xx_hal_gpio.h"
 /*#include "stm32f1xx_hal_spi.h"*/
 
 
+static SPI_HandleTypeDef SPI_HandleStructure;
 
 /*
- * º¯ÊıÃû£ºSPI1_Init
- * ÃèÊö  £ºENC28J60 SPI ½Ó¿Ú³õÊ¼»¯
- * ÊäÈë  £ºÎŞ
- * Êä³ö  £ºÎŞ
- * ·µ»Ø  £ºÎŞ
+ * å‡½æ•°åï¼šSPI1_Init
+ * æè¿°  ï¼šENC28J60 SPI æ¥å£åˆå§‹åŒ–
+ * è¾“å…¥  ï¼šæ— 
+ * è¾“å‡º  ï¼šæ— 
+ * è¿”å›  ï¼šæ— 
  */
 void SPI_Enc28j60_Init(void)
 {
-	GPIO_InitTypeDef GPIO_InitStructure;
-	SPI_InitTypeDef  SPI_InitStructure;
+    GPIO_InitTypeDef GPIO_InitStructure;
 
-	/* Ê¹ÄÜ SPI1 Ê±ÖÓ */
-	/*RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_SPI1, ENABLE);*/
+    /* ä½¿èƒ½ SPI1 æ—¶é’Ÿ */
+    /*RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_SPI1, ENABLE);*/
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_SPI1_CLK_ENABLE();
 
-	/* ---------enc28j60 Í¨ĞÅI/O³õÊ¼»¯----------------
-	 * PA5-SPI1-SCK :ENC28J60_SCK
-	 * PA6-SPI1-MISO:ENC28J60_SO
-	 * PA7-SPI1-MOSI:ENC28J60_SI
-	 */
-	GPIO_InitStructure.Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
-	GPIO_InitStructure.Speed = GPIO_Speed_10MHz;
-	GPIO_InitStructure.Mode = GPIO_Mode_AF_PP;		   // ¸´ÓÃÊä³ö
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
+    /* ---------enc28j60 é€šä¿¡I/Oåˆå§‹åŒ–----------------
+     * PA5-SPI1-SCK :ENC28J60_SCK
+     * PA6-SPI1-MISO:ENC28J60_SO
+     * PA7-SPI1-MOSI:ENC28J60_SI
+     */
 
-	/* ---------enc28j60 ¿ØÖÆI/O³õÊ¼»¯----------------*/
-	/* PA4-SPI1-NSS:ENC28J60_CS */ 											 // Æ¬Ñ¡
-  GPIO_InitStructure.Pin = GPIO_Pin_4;
-  GPIO_InitStructure.Speed = GPIO_Speed_10MHz;
-  GPIO_InitStructure.Mode = GPIO_Mode_Out_PP;	   // ÍÆÃâÊä³ö
-  GPIO_Init(GPIOA, &GPIO_InitStructure);
-	GPIO_SetBits(GPIOA, GPIO_Pin_4);										 // ÏÈ°ÑÆ¬Ñ¡À­¸ß£¬ÕæÕıÓÃµÄÊ±ºòÔÙÀ­µÍ
+    GPIO_InitStructure.Pin = GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
+    GPIO_InitStructure.Speed = GPIO_SPEED_MEDIUM;
+    GPIO_InitStructure.Speed = GPIO_SPEED_MEDIUM;
+    GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;		   // å¤ç”¨è¾“å‡º
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-	/* PB13:ENC28J60_INT */						// ÖĞ¶ÏÒı½ÅÃ»ÓÃµ½
+    /* ---------enc28j60 æ§åˆ¶I/Oåˆå§‹åŒ–----------------*/
+    /* PA4-SPI1-NSS:ENC28J60_CS */ 											 // ç‰‡é€‰
+    GPIO_InitStructure.Pin = GPIO_PIN_4;
+    GPIO_InitStructure.Pin = GPIO_PIN_4;
+    GPIO_InitStructure.Speed = GPIO_SPEED_MEDIUM;
+    GPIO_InitStructure.Speed = GPIO_SPEED_MEDIUM;
+    GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;	   // æ¨å…è¾“å‡º
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 
-	/* PE1:ENC28J60_RST*/				      // ¸´Î»ËÆºõ²»ÓÃÒ²¿ÉÒÔ
+    /* PB13:ENC28J60_INT */						// ä¸­æ–­å¼•è„šæ²¡ç”¨åˆ°
 
+    /* PE1:ENC28J60_RST*/				      // å¤ä½ä¼¼ä¹ä¸ç”¨ä¹Ÿå¯ä»¥
 
-	/* SPI1 ÅäÖÃ */
-	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
-	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
-	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
-	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
-	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
-	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
-	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;
-	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
-	SPI_InitStructure.SPI_CRCPolynomial = 7;
-	SPI_Init(SPI1, &SPI_InitStructure);
+    /* SPI1 é…ç½® */
+    SPI_HandleStructure.Instance = SPI1;
+    SPI_HandleStructure.Init.Direction = SPI_DIRECTION_2LINES;
+    SPI_HandleStructure.Init.Mode = SPI_MODE_MASTER;
+    SPI_HandleStructure.Init.DataSize = SPI_DATASIZE_8BIT;
+    SPI_HandleStructure.Init.CLKPolarity = SPI_POLARITY_LOW;
+    SPI_HandleStructure.Init.CLKPhase = SPI_PHASE_1EDGE;
+    SPI_HandleStructure.Init.NSS = SPI_NSS_SOFT;
+    SPI_HandleStructure.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+    SPI_HandleStructure.Init.FirstBit = SPI_FIRSTBIT_MSB;
+    SPI_HandleStructure.Init.CRCPolynomial = 7;
 
-	/* Ê¹ÄÜ SPI1  */
-	SPI_Cmd(SPI1, ENABLE);
+    HAL_SPI_Init(&SPI_HandleStructure);
+
+    /* ä½¿èƒ½ SPI1  */ /*SPI_Cmd(SPI1, ENABLE);*/
+    __HAL_SPI_ENABLE(&SPI_HandleStructure);
+  /*switch(HAL_SPI_TransmitReceive(&SpiHandle, (uint8_t*)aTxBuffer, (uint8_t *)aRxBuffer, BUFFERSIZE, 5000))*/
 }
 
 /*
- * º¯ÊıÃû£ºSPI1_ReadWrite
- * ÃèÊö  £ºSPI1¶ÁĞ´Ò»×Ö½ÚÊı¾İ
- * ÊäÈë  £º
- * Êä³ö  £º
- * ·µ»Ø  £º
+ * å‡½æ•°åï¼šSPI1_ReadWrite
+ * æè¿°  ï¼šSPI1è¯»å†™ä¸€å­—èŠ‚æ•°æ®
+ * è¾“å…¥  ï¼š
+ * è¾“å‡º  ï¼š
+ * è¿”å›  ï¼š
  */
-unsigned char	SPI1_ReadWrite(unsigned char writedat)
+unsigned char SPI1_ReadWrite(unsigned char writedat)
 {
-	/* Loop while DR register in not emplty */
-	while(SPI_I2S_GetFlagStatus(SPI1,SPI_I2S_FLAG_TXE) == RESET);
-
-	/* Send byte through the SPI1 peripheral */
-	SPI_I2S_SendData(SPI1, writedat);
-
-	/* Wait to receive a byte */
-	while(SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
-
-	/* Return the byte read from the SPI bus */
-	return SPI_I2S_ReceiveData(SPI1);
+    uint8_t readdat;
+    HAL_SPI_TransmitReceive(&SPI_HandleStructure, &writedat, &readdat, 1, 5000);
+    return readdat;
 }
 

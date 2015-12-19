@@ -2,16 +2,23 @@
 
 #define NOP() __NOP
 
-#define DS1302_CLK_H()	(GPIOE->BSRR=GPIO_Pin_4)
-#define DS1302_CLK_L()	(GPIOE->BRR=GPIO_Pin_4)
+#define DS1302_CLK_H()	(GPIOE->BSRR=GPIO_PIN_4)
+#define DS1302_CLK_H()	(GPIOE->BSRR=GPIO_PIN_4)
+#define DS1302_CLK_L()	(GPIOE->BRR=GPIO_PIN_4)
+#define DS1302_CLK_L()	(GPIOE->BRR=GPIO_PIN_4)
 
-#define DS1302_RST_H()	(GPIOE->BSRR=GPIO_Pin_6)
-#define DS1302_RST_L()	(GPIOE->BRR=GPIO_Pin_6)
+#define DS1302_RST_H()	(GPIOE->BSRR=GPIO_PIN_6)
+#define DS1302_RST_H()	(GPIOE->BSRR=GPIO_PIN_6)
+#define DS1302_RST_L()	(GPIOE->BRR=GPIO_PIN_6)
+#define DS1302_RST_L()	(GPIOE->BRR=GPIO_PIN_6)
 
-#define DS1302_OUT_H()	(GPIOE->BSRR=GPIO_Pin_5)
-#define DS1302_OUT_L()	(GPIOE->BRR=GPIO_Pin_5)
+#define DS1302_OUT_H()	(GPIOE->BSRR=GPIO_PIN_5)
+#define DS1302_OUT_H()	(GPIOE->BSRR=GPIO_PIN_5)
+#define DS1302_OUT_L()	(GPIOE->BRR=GPIO_PIN_5)
+#define DS1302_OUT_L()	(GPIOE->BRR=GPIO_PIN_5)
 
-#define DS1302_IN_X		(GPIOE->IDR&GPIO_Pin_5)
+#define DS1302_IN_X		(GPIOE->IDR&GPIO_PIN_5)
+#define DS1302_IN_X		(GPIOE->IDR&GPIO_PIN_5)
 
 #define Time_24_Hour	0x00	//24时制控制
 #define Time_Start		0x00	//开始走时
@@ -33,8 +40,10 @@ void DS1302_Configuration(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);
 
 	/* PE4,5,6输出 */
-	GPIO_ResetBits(GPIOE,GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6);
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6;
+	GPIO_ResetBits(GPIOE,GPIO_PIN_4|GPIO_Pin_5|GPIO_Pin_6);
+	GPIO_ResetBits(GPIOE,GPIO_PIN_4|GPIO_Pin_5|GPIO_Pin_6);
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_4|GPIO_Pin_5|GPIO_Pin_6;
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_4|GPIO_Pin_5|GPIO_Pin_6;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;	//推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	//50M时钟速度
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
@@ -48,14 +57,16 @@ static void DelayNOP(u32 count)
 
 static void DS1302_OUT(void)
 {
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_5;
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_5;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
 }
 
 static void DS1302_IN(void)
 {
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_5;
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_5;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 	GPIO_Init(GPIOE, &GPIO_InitStructure);
 }

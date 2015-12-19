@@ -82,30 +82,36 @@ void Init_Usart(void)
 	
 															//使能各个端口时钟，重要！！！
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2; 				//配置串口接收端口挂接到2端口
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_2; 				//配置串口接收端口挂接到2端口
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_2; 				//配置串口接收端口挂接到2端口
   	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;	   		//复用功能输出开漏
   	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	   	//配置端口速度为50M
   	GPIO_Init(GPIOA, &GPIO_InitStructure);				   	//根据参数初始化GPIOA寄存器	
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3; 
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_3; 
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_3; 
   	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;	//浮空输入(复位状态);	   				
   	GPIO_Init(GPIOA, &GPIO_InitStructure);				   	//根据参数初始化GPIOA寄存器	
 	
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9; 				//配置串口接收端口挂接到9端口
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_9; 				//配置串口接收端口挂接到9端口
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_9; 				//配置串口接收端口挂接到9端口
   	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;	   		//复用功能输出开漏
   	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	   	//配置端口速度为50M
   	GPIO_Init(GPIOA, &GPIO_InitStructure);				   	//根据参数初始化GPIOA寄存器	
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10; 
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_10; 
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_10; 
   	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;	//浮空输入(复位状态);	   				
   	GPIO_Init(GPIOA, &GPIO_InitStructure);				   	//根据参数初始化GPIOA寄存器	
 	
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10; 				//配置串口接收端口挂接到10端口 USART3
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_10; 				//配置串口接收端口挂接到10端口 USART3
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_10; 				//配置串口接收端口挂接到10端口 USART3
   	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;	   		//复用功能输出开漏
   	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;	   	//配置端口速度为50M
   	GPIO_Init(GPIOB, &GPIO_InitStructure);				   	//根据参数初始化GPIOA寄存器	
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11; 
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_11; 
+	GPIO_InitStructure.GPIO_Pin = GPIO_PIN_11; 
   	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;	//浮空输入(复位状态);	   				
   	GPIO_Init(GPIOB, &GPIO_InitStructure);				   	//根据参数初始化GPIOA寄存器	
 		

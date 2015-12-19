@@ -244,17 +244,9 @@
 #define        MAX_FRAMELEN        1500        // (note: maximum ethernet frame length would be 1518)
 //#define MAX_FRAMELEN     600
 
-
-
-
-
-
-#define GPIO_PIN_4                 ((uint16_t)0x0010)  /* Pin 4 selected    */
-//#define  ENC28J60_CS     GPIO_Pin_4       [> ENC28J60片选线 <]
-#define ENC28J60_CS      ((uint16_t)0x0010)
+#define  ENC28J60_CS     GPIO_PIN_4       /* ENC28J60片选线 */
 #define ENC28J60_CSL()  do{GPIOA->BRR = ENC28J60_CS;}while(0)   /* 拉低片选 */
 #define ENC28J60_CSH()  do{GPIOA->BSRR = ENC28J60_CS;}while(0)    /* 拉高片选 */
-
 
 unsigned char enc28j60ReadOp(unsigned char op, unsigned char address);
 void  enc28j60WriteOp(unsigned char op, unsigned char address, unsigned char data);

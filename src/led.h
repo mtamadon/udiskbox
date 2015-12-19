@@ -7,14 +7,18 @@
 #define OFF	1
 
 #define LED1(a)	if (a)	\
-					GPIO_SetBits(GPIOD,GPIO_Pin_13);\
+					GPIO_SetBits(GPIOD,GPIO_PIN_13);\
+					GPIO_SetBits(GPIOD,GPIO_PIN_13);\
 					else		\
-					GPIO_ResetBits(GPIOD,GPIO_Pin_13)
+					GPIO_ResetBits(GPIOD,GPIO_PIN_13)
+					GPIO_ResetBits(GPIOD,GPIO_PIN_13)
 
 #define LED2(a)	if (a)	\
-					GPIO_SetBits(GPIOG,GPIO_Pin_14);\
+					GPIO_SetBits(GPIOG,GPIO_PIN_14);\
+					GPIO_SetBits(GPIOG,GPIO_PIN_14);\
 					else		\
-					GPIO_ResetBits(GPIOG,GPIO_Pin_14)
+					GPIO_ResetBits(GPIOG,GPIO_PIN_14)
+					GPIO_ResetBits(GPIOG,GPIO_PIN_14)
 
 
 void LED_GPIO_Config(void);

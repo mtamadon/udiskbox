@@ -9,28 +9,34 @@
 //端口定义
 /////////////////////////////////////////////////////////////////////
 //MFRC522
-#define MF522_RST_PIN                    GPIO_Pin_0
+#define MF522_RST_PIN                    GPIO_PIN_0
+#define MF522_RST_PIN                    GPIO_PIN_0
 #define MF522_RST_PORT                   GPIOD
 #define MF522_RST_CLK                    RCC_APB2Periph_GPIOD
 
-#define MF522_MISO_PIN                   GPIO_Pin_1
+#define MF522_MISO_PIN                   GPIO_PIN_1
+#define MF522_MISO_PIN                   GPIO_PIN_1
 #define MF522_MISO_PORT                  GPIOD
 #define MF522_MISO_CLK                   RCC_APB2Periph_GPIOD
 
-#define MF522_MOSI_PIN                   GPIO_Pin_7
+#define MF522_MOSI_PIN                   GPIO_PIN_7
+#define MF522_MOSI_PIN                   GPIO_PIN_7
 #define MF522_MOSI_PORT                  GPIOD
 #define MF522_MOSI_CLK                   RCC_APB2Periph_GPIOD
 
-#define MF522_SCK_PIN                    GPIO_Pin_3
+#define MF522_SCK_PIN                    GPIO_PIN_3
+#define MF522_SCK_PIN                    GPIO_PIN_3
 #define MF522_SCK_PORT                   GPIOD
 #define MF522_SCK_CLK                    RCC_APB2Periph_GPIOD
 
-#define MF522_NSS_PIN                    GPIO_Pin_4
+#define MF522_NSS_PIN                    GPIO_PIN_4
+#define MF522_NSS_PIN                    GPIO_PIN_4
 #define MF522_NSS_PORT                   GPIOD
 #define MF522_NSS_CLK                    RCC_APB2Periph_GPIOD
 
 //指示灯
-#define LED_PIN                          GPIO_Pin_14
+#define LED_PIN                          GPIO_PIN_14
+#define LED_PIN                          GPIO_PIN_14
 #define LED_PORT                         GPIOG
 #define LED_CLK                          RCC_APB2Periph_GPIOG
 

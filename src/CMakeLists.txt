@@ -14,6 +14,13 @@ aux_source_directory(./DS1302 DS1302_SRCS)
 aux_source_directory(./RFID RFID_SRCS)
 aux_source_directory(./Usart USART_SRCS)
 
+list(REMOVE_ITEM MAIN_SRCS
+    web_sever.c
+    web_sever.h
+    ip_arp_udp_tcp.h
+    ip_arp_udp_tcp.c
+)
+
 SET(PROJECT_SOURCES
     ${MAIN_SRCS}
     ${DS1302_SRCS}

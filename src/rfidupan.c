@@ -663,7 +663,8 @@ void Init_RfidUpan_GPIO()
   RCC_APB2PeriphClockCmd(MF522_NSS_CLK, ENABLE);
 
   /* Configure the GPIO pin */
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7|GPIO_Pin_5|GPIO_Pin_6;
+  GPIO_InitStructure.GPIO_Pin = GPIO_PIN_7|GPIO_Pin_5|GPIO_Pin_6;
+  GPIO_InitStructure.GPIO_Pin = GPIO_PIN_7|GPIO_Pin_5|GPIO_Pin_6;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
 
@@ -693,16 +694,21 @@ void ncs_h(unsigned char cs)
 {
 		switch(cs)
 		{
-			case 0x01:GPIO_ResetBits(GPIOD, GPIO_Pin_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_4);break;
-			case 0x02:GPIO_ResetBits(GPIOD, GPIO_Pin_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_5);break;
-			case 0x03:GPIO_ResetBits(GPIOD, GPIO_Pin_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_6);break;
-			case 0x04:GPIO_ResetBits(GPIOD, GPIO_Pin_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_7);break;
+			case 0x01:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_4);break;
+			case 0x01:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_4);break;
+			case 0x02:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_5);break;
+			case 0x02:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_5);break;
+			case 0x03:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_6);break;
+			case 0x03:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_6);break;
+			case 0x04:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_7);break;
+			case 0x04:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_7);break;
 		}
 }
 
 void ncs_l(void)
 {
-		GPIO_ResetBits(GPIOD, GPIO_Pin_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);
+		GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);
+		GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);
 }
 
 void ncs(unsigned char cse)
@@ -710,9 +716,13 @@ void ncs(unsigned char cse)
 	csh=cse;
 	switch(cse)
 		{
-			case 0x01:GPIO_ResetBits(GPIOD, GPIO_Pin_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_4);break;
-			case 0x02:GPIO_ResetBits(GPIOD, GPIO_Pin_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_5);break;
-			case 0x03:GPIO_ResetBits(GPIOD, GPIO_Pin_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_6);break;
-			case 0x04:GPIO_ResetBits(GPIOD, GPIO_Pin_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_7);break;
+			case 0x01:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_4);break;
+			case 0x01:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_4);break;
+			case 0x02:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_5);break;
+			case 0x02:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_5);break;
+			case 0x03:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_6);break;
+			case 0x03:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_6);break;
+			case 0x04:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_7);break;
+			case 0x04:GPIO_ResetBits(GPIOD, GPIO_PIN_4 | GPIO_Pin_5| GPIO_Pin_6| GPIO_Pin_7);GPIO_SetBits(GPIOD, GPIO_Pin_7);break;
 		}
 }
