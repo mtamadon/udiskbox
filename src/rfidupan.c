@@ -611,17 +611,16 @@ void Init_RfidUpan_GPIO()
 
   /* Enable the GPIO Clock */
   /*RCC_APB2PeriphClockCmd(MF522_RST_CLK, ENABLE);*/
-  __HAL_RCC_MF522_RST_PORT_CLK_ENABLE();
+  __HAL_RCC_MF522_PORT_CLK_ENABLE();
   /* Configure the GPIO pin */
-  GPIO_InitStructure.Pin = MF522_RST_PIN;
+  GPIO_InitStructure.Pin = MF522_RST_PIN| MF522_MOSI_PIN| MF522_SCK_PIN| MF522_NSS_PIN;
   GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
 
-  HAL_GPIO_Init(MF522_RST_PORT, &GPIO_InitStructure);
+  HAL_GPIO_Init(MF522_PORT, &GPIO_InitStructure);
 
   /* Enable the GPIO Clock */
   /*RCC_APB2PeriphClockCmd(MF522_MISO_CLK, ENABLE);*/
-  __HAL_RCC_MF522_MISO_PORT_CLK_ENABLE();
 
   /* Configure the GPIO pin */
   GPIO_InitStructure.Pin = MF522_MISO_PIN;
@@ -629,39 +628,6 @@ void Init_RfidUpan_GPIO()
   GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
 
   HAL_GPIO_Init(MF522_MISO_PORT, &GPIO_InitStructure);
-
-  /* Enable the GPIO Clock */
-  /*RCC_APB2PeriphClockCmd(MF522_MOSI_CLK, ENABLE);*/
-  __HAL_RCC_MF522_MOSI_PORT_CLK_ENABLE();
-
-  /* Configure the GPIO pin */
-  GPIO_InitStructure.Pin = MF522_MOSI_PIN;
-  GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
-
-  HAL_GPIO_Init(MF522_MOSI_PORT, &GPIO_InitStructure);
-
-  /* Enable the GPIO Clock */
-  /*RCC_APB2PeriphClockCmd(MF522_SCK_CLK, ENABLE);*/
-  __HAL_RCC_MF522_SCK_PORT_CLK_ENABLE();
-
-  /* Configure the GPIO pin */
-  GPIO_InitStructure.Pin = MF522_SCK_PIN;
-  GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
-
-  HAL_GPIO_Init(MF522_SCK_PORT, &GPIO_InitStructure);
-
-  /* Enable the GPIO Clock */
-  /*RCC_APB2PeriphClockCmd(MF522_NSS_CLK, ENABLE);*/
-  __HAL_RCC_MF522_NSS_PORT_CLK_ENABLE();
-
-  /* Configure the GPIO pin */
-  GPIO_InitStructure.Pin = MF522_NSS_PIN;
-  GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
-
-  HAL_GPIO_Init(MF522_NSS_PORT, &GPIO_InitStructure);
 }
 
 void Init_RfidUpan()

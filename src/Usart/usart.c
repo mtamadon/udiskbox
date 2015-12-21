@@ -1,10 +1,9 @@
 //头文件调用
-#include "usually.h"
 #include "usart.h"
 #include "PICC.h"
 
 //加入以下代码,支持printf函数,而不需要选择use MicroLIB
-#if 1
+#if 0
 #pragma import(__use_no_semihosting)
 //标准库需要的支持函数
 struct __FILE
@@ -32,6 +31,7 @@ int fputc(int Data, FILE *f)
 }
 #endif
 
+#if 0
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: USART1_Send_Byte
  ** 功能描述: 串口发送一个字符串
@@ -59,6 +59,7 @@ uint8_t USART1_Receive_Byte(void)
     //1：忙状态  0：空闲(没收到数据，等待。。。)
     return USART_ReceiveData(USART1);					   //接收一个字符
 }
+#endif
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: Usart_Init
  ** 功能描述: 串口引脚初始化，初始化USART1、USART2、USART3
@@ -78,12 +79,13 @@ void Init_Usart(void)
     /*RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB ,ENABLE); //USART3*/
     /*RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3,ENABLE);*/
     __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_AFIO_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_USART1_CLK_ENABLE();
     __HAL_RCC_USART2_CLK_ENABLE();
     __HAL_RCC_USART3_CLK_ENABLE(); //使能各个端口时钟，重要！！！ //TODO: all pin enable
 
-    GPIO_InitStructure.Pin = GPIO_PIN_2|GPIO_PIN_9; 				//配置串口接收端口挂接到2端口
+    GPIO_InitStructure.Pin = GPIO_PIN_2|GPIO_PIN_9;
     GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;	   		//复用功能输出开漏
     GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;	   	//配置端口速度为50M
     HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);				   	//根据参数初始化GPIOA寄存器
@@ -100,9 +102,8 @@ void Init_Usart(void)
     GPIO_InitStructure.Pin = GPIO_PIN_11;
     GPIO_InitStructure.Mode = GPIO_MODE_INPUT;	//浮空输入(复位状态);
     HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);				   	//根据参数初始化GPIOA寄存器
-
-
 }
+
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: Usart_Configuration
  ** 功能描述: 串口配置函数
@@ -125,13 +126,7 @@ void Usart_Configuration(USART_TypeDef * USART_X, uint32_t BaudRate)
     /*USART_Cmd(USART_X, ENABLE);     											//使能串口外设*/
     __HAL_USART_ENABLE(&USART_HandleStructure);
 }
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- ** 函数名称: USART1_IRQHandler
- ** 功能描述: 串口中断函数
- ** 参数描述: 无
- ** 作  　者: Dream
- ** 日　  期: 2011年6月20日
- :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+
 void USART1_IRQHandler()
 {
     //uint8_t ReceiveDate;								//定义一个变量存放接收的数据
@@ -146,13 +141,7 @@ void USART1_IRQHandler()
         // 		printf("\n\r");									//换行置顶
     }
 }
-/*******************************************************************************
- * Function Name  : USART1_IRQHandler
- * Description    : This function handles USART1 global interrupt request.
- * Input          : None
- * Output         : None
- * Return         : None
- *******************************************************************************/
+
 void USART2_IRQHandler(void)
 {
     static unsigned char bTemp, flag=0;
@@ -217,6 +206,7 @@ void USART2_IRQHandler(void)
     }
     USART2->SR = 0;
 }
+
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: Lcd_Display
  ** 功能描述: LCD显示成像
@@ -224,7 +214,6 @@ void USART2_IRQHandler(void)
  ** 作  　者: Dream
  ** 日　  期: 2011年6月20日
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-
 void Lcd_Display(char * buf1)
 {
     uint8_t i=0;
@@ -239,6 +228,7 @@ void Lcd_Display(char * buf1)
         else return;
     }
 }
+
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: USART2_SendString
  ** 功能描述: USART2发送字符串
@@ -246,7 +236,6 @@ void Lcd_Display(char * buf1)
  ** 作  　者: Dream
  ** 日　  期: 2011年6月20日
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-
 void USART2_SendString(char * buf1)
 {
     uint8_t i=0;
@@ -261,6 +250,3 @@ void USART2_SendString(char * buf1)
         else return;
     }
 }
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-End:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/

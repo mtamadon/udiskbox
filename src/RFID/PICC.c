@@ -1,28 +1,28 @@
 /******************** (C) COPYRIGHT 2013 ********************
-* ÎÄ¼şÃû          : PICC.c
-* ×÷Õß            : ÓÅÁéµç×Ó¿ª·¢ÍÅ¶Ó¡£
-* °æ±¾            : V2.0.1.0
-* ÈÕÆÚ            : 2013-5-10
-* ÃèÊö            : ËùÓĞ¶Ô¿¨µÄ²Ù×÷£¬¸øÄ£¿é·¢ËÍµÄÃüÁî¡£
-* ¼¼ÊõÖ§³Ö        : QQ: 526181679
+* æ–‡ä»¶å          : PICC.c
+* ä½œè€…            : ä¼˜çµç”µå­å¼€å‘å›¢é˜Ÿã€‚
+* ç‰ˆæœ¬            : V2.0.1.0
+* æ—¥æœŸ            : 2013-5-10
+* æè¿°            : æ‰€æœ‰å¯¹å¡çš„æ“ä½œï¼Œç»™æ¨¡å—å‘é€çš„å‘½ä»¤ã€‚
+* æŠ€æœ¯æ”¯æŒ        : QQ: 526181679
 ********************************************************************************/
 
-/* °üº¬ÎÄ¼ş -------------------------------------------------------------------*/
+/* åŒ…å«æ–‡ä»¶ -------------------------------------------------------------------*/
 #include "PICC.h"
-/* ºê¶¨Òå ---------------------------------------------------------------------*/
-/* ±¾ÎÄ¼şÊ¹ÓÃµÄ±äÁ¿ -----------------------------------------------------------*/
+/* å®å®šä¹‰ ---------------------------------------------------------------------*/
+/* æœ¬æ–‡ä»¶ä½¿ç”¨çš„å˜é‡ -----------------------------------------------------------*/
 PICC Picc;
 CMD Cmd;
-/* ±¾ÎÄ¼şÊ¹ÓÃµÄº¯ÊıÉùÃ÷ -------------------------------------------------------*/
+/* æœ¬æ–‡ä»¶ä½¿ç”¨çš„å‡½æ•°å£°æ˜ -------------------------------------------------------*/
 void SendCommand(void);
-/* ±¾ÎÄ¼şº¯ÊıÌå ---------------------------------------------------------------*/
+/* æœ¬æ–‡ä»¶å‡½æ•°ä½“ ---------------------------------------------------------------*/
 
 /*******************************************************************************
-* º¯ÊıÃû         : PICCHalt
-* ÃèÊö           : Í£Ö¹¿¨ÃüÁî¡£
-* ÊäÈë           : ÎŞ
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : PICCHalt
+* æè¿°           : åœæ­¢å¡å‘½ä»¤ã€‚
+* è¾“å…¥           : æ— 
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void PICCHalt(void)
 {
@@ -32,13 +32,13 @@ void PICCHalt(void)
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : PICCRequest
-* ÃèÊö           : ÇëÇó¿¨¡£
-* ÊäÈë           : mode: Ñ°¿¨Ä£Ê½¡£
-										-0x26: Ñ°Î´±»Í£Ö¹µÄ¿¨¡£
-										-0x52: Ñ°ËùÓĞ¿¨¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : PICCRequest
+* æè¿°           : è¯·æ±‚å¡ã€‚
+* è¾“å…¥           : mode: å¯»å¡æ¨¡å¼ã€‚
+										-0x26: å¯»æœªè¢«åœæ­¢çš„å¡ã€‚
+										-0x52: å¯»æ‰€æœ‰å¡ã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void PICCRequest(unsigned char mode)
 {
@@ -49,11 +49,11 @@ void PICCRequest(unsigned char mode)
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : PICCAnticoll
-* ÃèÊö           : ·À³å×²¡£
-* ÊäÈë           : ÎŞ
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : PICCAnticoll
+* æè¿°           : é˜²å†²æ’ã€‚
+* è¾“å…¥           : æ— 
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void PICCAnticoll(void)
 {
@@ -63,11 +63,11 @@ void PICCAnticoll(void)
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : PICCSelect
-* ÃèÊö           : Ñ¡Ôñ¿¨¡£
-* ÊäÈë           : ÎŞ
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : PICCSelect
+* æè¿°           : é€‰æ‹©å¡ã€‚
+* è¾“å…¥           : æ— 
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void PICCSelect(void)
 {
@@ -77,20 +77,20 @@ void PICCSelect(void)
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : PICCAuthState
-* ÃèÊö           : ÑéÖ¤¡£
-* ÊäÈë           : sector: ÒªÑéÖ¤µÄÉÈÇøºÅ¡£
-                   mode:   ÑéÖ¤Ä£Ê½¡£
-                        -0x60:ÑéÖ¤ÃÜÔ¿ A
-                        -0x61:ÑéÖ¤ÃÜÔ¿ B
-                   key:    ÃÜÔ¿Êı×é¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : PICCAuthState
+* æè¿°           : éªŒè¯ã€‚
+* è¾“å…¥           : sector: è¦éªŒè¯çš„æ‰‡åŒºå·ã€‚
+                   mode:   éªŒè¯æ¨¡å¼ã€‚
+                        -0x60:éªŒè¯å¯†é’¥ A
+                        -0x61:éªŒè¯å¯†é’¥ B
+                   key:    å¯†é’¥æ•°ç»„ã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void PICCAuthState(unsigned char sector, unsigned char mode, unsigned char *key)
 {
 	unsigned char i;
-	
+
 	Cmd.SendBuffer[0] = 10;
 	Cmd.SendBuffer[1] = 0x05;
 	Cmd.SendBuffer[2] = sector;
@@ -103,11 +103,11 @@ void PICCAuthState(unsigned char sector, unsigned char mode, unsigned char *key)
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : PICCReadBlockData
-* ÃèÊö           : ¶Á¿éÊı¾İ¡£
-* ÊäÈë           : block: ½«Òª¶ÁµÄ¿éµØÖ·¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : PICCReadBlockData
+* æè¿°           : è¯»å—æ•°æ®ã€‚
+* è¾“å…¥           : block: å°†è¦è¯»çš„å—åœ°å€ã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void PICCReadBlockData(unsigned char block)
 {
@@ -118,17 +118,17 @@ void PICCReadBlockData(unsigned char block)
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : PICCWriteBlockData
-* ÃèÊö           : Ğ´¿éÊı¾İ¡£
-* ÊäÈë           : block:     ½«ÒªĞ´µÄ¿éµØÖ·¡£
-                   blockData: ¿éÊı¾İÊı×é¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : PICCWriteBlockData
+* æè¿°           : å†™å—æ•°æ®ã€‚
+* è¾“å…¥           : block:     å°†è¦å†™çš„å—åœ°å€ã€‚
+                   blockData: å—æ•°æ®æ•°ç»„ã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void PICCWriteBlockData(unsigned char block, unsigned char *blockData)
 {
 	unsigned char i;
-	
+
 	Cmd.SendBuffer[0] = 19;
 	Cmd.SendBuffer[1] = 0x07;
 	Cmd.SendBuffer[2] = block;
@@ -140,12 +140,12 @@ void PICCWriteBlockData(unsigned char block, unsigned char *blockData)
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : PICCInc
-* ÃèÊö           : ÔöÖµ¡£
-* ÊäÈë           : block: ½«Òª²Ù×÷µÄ¿éµØÖ·¡£
-                   value: ½«ÒªÔö¼ÓµÄÖµ¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : PICCInc
+* æè¿°           : å¢å€¼ã€‚
+* è¾“å…¥           : block: å°†è¦æ“ä½œçš„å—åœ°å€ã€‚
+                   value: å°†è¦å¢åŠ çš„å€¼ã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void PICCInc(unsigned char block, unsigned long value)
 {
@@ -160,12 +160,12 @@ void PICCInc(unsigned char block, unsigned long value)
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : PICCDec
-* ÃèÊö           : ¼õÖµ¡£
-* ÊäÈë           : block: ½«Òª²Ù×÷µÄ¿éµØÖ·¡£
-                   value: ½«Òª¼õµÄÖµ¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : PICCDec
+* æè¿°           : å‡å€¼ã€‚
+* è¾“å…¥           : block: å°†è¦æ“ä½œçš„å—åœ°å€ã€‚
+                   value: å°†è¦å‡çš„å€¼ã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void PICCDec(unsigned char block, unsigned long value)
 {
@@ -180,11 +180,11 @@ void PICCDec(unsigned char block, unsigned long value)
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : PICCRestore
-* ÃèÊö           : »º³åÊı¾İ¡£
-* ÊäÈë           : block: ½«Òª²Ù×÷µÄ¿éµØÖ·¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : PICCRestore
+* æè¿°           : ç¼“å†²æ•°æ®ã€‚
+* è¾“å…¥           : block: å°†è¦æ“ä½œçš„å—åœ°å€ã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void PICCRestore(unsigned char block)
 {
@@ -195,11 +195,11 @@ void PICCRestore(unsigned char block)
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : PICCTansfer
-* ÃèÊö           : ´æ´¢Êı¾İ¡£
-* ÊäÈë           : block: ½«Òª²Ù×÷µÄ¿éµØÖ·¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : PICCTansfer
+* æè¿°           : å­˜å‚¨æ•°æ®ã€‚
+* è¾“å…¥           : block: å°†è¦æ“ä½œçš„å—åœ°å€ã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void PICCTansfer(unsigned char block)
 {
@@ -209,11 +209,11 @@ void PICCTansfer(unsigned char block)
 	SendCommand();
 }
 /*******************************************************************************
-* º¯ÊıÃû         : OneKeyReadCard
-* ÃèÊö           : Ò»¼ü¶Á¿¨¡£
-* ÊäÈë           : ÎŞ
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : OneKeyReadCard
+* æè¿°           : ä¸€é”®è¯»å¡ã€‚
+* è¾“å…¥           : æ— 
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void OneKeyReadCard(void)
 {
@@ -222,19 +222,19 @@ void OneKeyReadCard(void)
 	SendCommand();
 }
 /*******************************************************************************
-* º¯ÊıÃû         : OneKeyMakeCard
-* ÃèÊö           : Ò»¼ü°ì¿¨¡£
-* ÊäÈë           : block: ½«Òª²Ù×÷µÄ¿éµØÖ·¡£
-                   value: ½«Òª²Ù×÷µÄÖµ¡£
-                   keyA : °ì¿¨ÉèÖÃµÄÃÜÔ¿A¡£
-									 keyB : °ì¿¨ÉèÖÃµÄÃÜÔ¿B¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : OneKeyMakeCard
+* æè¿°           : ä¸€é”®åŠå¡ã€‚
+* è¾“å…¥           : block: å°†è¦æ“ä½œçš„å—åœ°å€ã€‚
+                   value: å°†è¦æ“ä½œçš„å€¼ã€‚
+                   keyA : åŠå¡è®¾ç½®çš„å¯†é’¥Aã€‚
+									 keyB : åŠå¡è®¾ç½®çš„å¯†é’¥Bã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void OneKeyMakeCard(unsigned char block, unsigned long value, unsigned char *keyA, unsigned char *keyB)
 {
 	unsigned char i;
-	
+
 	Cmd.SendBuffer[0] = 19;
 	Cmd.SendBuffer[1] = 0x11;
 	Cmd.SendBuffer[2] = block;
@@ -253,18 +253,18 @@ void OneKeyMakeCard(unsigned char block, unsigned long value, unsigned char *key
 	SendCommand();
 }
 /*******************************************************************************
-* º¯ÊıÃû         : OneKeyInc
-* ÃèÊö           : Ò»¼ü³äÖµ¡£
-* ÊäÈë           : block: ½«Òª²Ù×÷µÄ¿éµØÖ·¡£
-                   key  : °ì¿¨ÉèÖÃµÄÃÜÔ¿¡£
-                   value: ½«Òª²Ù×÷µÄÖµ¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : OneKeyInc
+* æè¿°           : ä¸€é”®å……å€¼ã€‚
+* è¾“å…¥           : block: å°†è¦æ“ä½œçš„å—åœ°å€ã€‚
+                   key  : åŠå¡è®¾ç½®çš„å¯†é’¥ã€‚
+                   value: å°†è¦æ“ä½œçš„å€¼ã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void OneKeyInc(unsigned char block, unsigned char *key, unsigned long value)
 {
 	unsigned char i;
-	
+
 	Cmd.SendBuffer[0] = 13;
 	Cmd.SendBuffer[1] = 0x12;
 	Cmd.SendBuffer[2] = block;
@@ -279,18 +279,18 @@ void OneKeyInc(unsigned char block, unsigned char *key, unsigned long value)
 	SendCommand();
 }
 /*******************************************************************************
-* º¯ÊıÃû         : OneKeyInc
-* ÃèÊö           : Ò»¼ü¿Û¿î¡£
-* ÊäÈë           : block: ½«Òª²Ù×÷µÄ¿éµØÖ·¡£
-                   key  : °ì¿¨ÉèÖÃµÄÃÜÔ¿¡£
-                   value: ½«Òª²Ù×÷µÄÖµ¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : OneKeyInc
+* æè¿°           : ä¸€é”®æ‰£æ¬¾ã€‚
+* è¾“å…¥           : block: å°†è¦æ“ä½œçš„å—åœ°å€ã€‚
+                   key  : åŠå¡è®¾ç½®çš„å¯†é’¥ã€‚
+                   value: å°†è¦æ“ä½œçš„å€¼ã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void OneKeyDec(unsigned char block, unsigned char *key, unsigned long value)
 {
 	unsigned char i;
-	
+
 	Cmd.SendBuffer[0] = 13;
 	Cmd.SendBuffer[1] = 0x13;
 	Cmd.SendBuffer[2] = block;
@@ -306,17 +306,17 @@ void OneKeyDec(unsigned char block, unsigned char *key, unsigned long value)
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : OneKeyReadBlock
-* ÃèÊö           : Ò»¼ü¶Á¿é¡£
-* ÊäÈë           : block: ½«Òª²Ù×÷µÄ¿éµØÖ·¡£
-                   keyA : ÃÜÔ¿A¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : OneKeyReadBlock
+* æè¿°           : ä¸€é”®è¯»å—ã€‚
+* è¾“å…¥           : block: å°†è¦æ“ä½œçš„å—åœ°å€ã€‚
+                   keyA : å¯†é’¥Aã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void OneKeyReadBlock(unsigned char block, unsigned char *keyA)
 {
 	unsigned char i;
-	
+
 	Cmd.SendBuffer[0] = 9;
 	Cmd.SendBuffer[1] = 0x13;
 	Cmd.SendBuffer[2] = block;
@@ -328,17 +328,17 @@ void OneKeyReadBlock(unsigned char block, unsigned char *keyA)
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : OneKeyWriteBlock
-* ÃèÊö           : Ò»¼üĞ´¿é¡£
-* ÊäÈë           : block: ½«Òª²Ù×÷µÄ¿éµØÖ·¡£
-                   keyB : ÃÜÔ¿B¡£
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : ÎŞ
+* å‡½æ•°å         : OneKeyWriteBlock
+* æè¿°           : ä¸€é”®å†™å—ã€‚
+* è¾“å…¥           : block: å°†è¦æ“ä½œçš„å—åœ°å€ã€‚
+                   keyB : å¯†é’¥Bã€‚
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ— 
 *******************************************************************************/
 void OneKeyWriteBlock(unsigned char block, unsigned char *keyB, unsigned char *blockData)
 {
 	unsigned char i;
-	
+
 	Cmd.SendBuffer[0] = 25;
 	Cmd.SendBuffer[1] = 0x13;
 	Cmd.SendBuffer[2] = block;
@@ -354,27 +354,27 @@ void OneKeyWriteBlock(unsigned char block, unsigned char *keyB, unsigned char *b
 }
 
 /*******************************************************************************
-* º¯ÊıÃû         : CommandProcess
-* ÃèÊö           : ÃüÁî´¦Àí¡£
-* ÊäÈë           : ÎŞ
-* Êä³ö           : ÎŞ
-* ·µ»Ø           : Ö´ĞĞ½á¹û¡£
-                   -0   : ÕıÈ·¡£
-                   -0xFF: ÎŞ¿¨¡£
-                   -0xFE: ¿¨²Ù×÷´íÎó¡£
-                   -0xFD: ÃüÁî´íÎó¡£
-                   -0xFC: Ã»ÓĞÊÕµ½ÃüÁî¡£
+* å‡½æ•°å         : CommandProcess
+* æè¿°           : å‘½ä»¤å¤„ç†ã€‚
+* è¾“å…¥           : æ— 
+* è¾“å‡º           : æ— 
+* è¿”å›           : æ‰§è¡Œç»“æœã€‚
+                   -0   : æ­£ç¡®ã€‚
+                   -0xFF: æ— å¡ã€‚
+                   -0xFE: å¡æ“ä½œé”™è¯¯ã€‚
+                   -0xFD: å‘½ä»¤é”™è¯¯ã€‚
+                   -0xFC: æ²¡æœ‰æ”¶åˆ°å‘½ä»¤ã€‚
 *******************************************************************************/
 unsigned char CommandProcess(void)
 {
 	unsigned char i;
-	
+
 	if(Cmd.ReceiveFlag)
 	{
 		switch(Cmd.ReceiveBuffer[1])
 		{
 			case 0x01:
-				//noting to do 
+				//noting to do
 				break;
 			case 0x02:
 				Picc.Type = Cmd.ReceiveBuffer[3];
@@ -398,10 +398,10 @@ unsigned char CommandProcess(void)
 				Picc.UID |= Cmd.ReceiveBuffer[5];
 				Picc.UID <<= 8;
 				Picc.UID |= Cmd.ReceiveBuffer[6];
-			
+
 				break;
 			case 0x05:
-				//nothing to do 
+				//nothing to do
 				break;
 			case 0x06:
 				for(i = 0; i < 16; i ++)
@@ -413,7 +413,7 @@ unsigned char CommandProcess(void)
 				//nothing to do
 				break;
 			case 0x08:
-				//nothing to do 
+				//nothing to do
 				break;
 			case 0x09:
 				//nothing to do
@@ -428,7 +428,7 @@ unsigned char CommandProcess(void)
 				Picc.Type = Cmd.ReceiveBuffer[3];
 				Picc.Type <<= 8;
 				Picc.Type |= Cmd.ReceiveBuffer[4];
-			
+
 				Picc.UID = Cmd.ReceiveBuffer[5];
 				Picc.UID <<= 8;
 				Picc.UID |= Cmd.ReceiveBuffer[6];
@@ -441,7 +441,7 @@ unsigned char CommandProcess(void)
 				Picc.Type = Cmd.ReceiveBuffer[3];
 				Picc.Type <<= 8;
 				Picc.Type |= Cmd.ReceiveBuffer[4];
-			
+
 				Picc.UID = Cmd.ReceiveBuffer[5];
 				Picc.UID <<= 8;
 				Picc.UID |= Cmd.ReceiveBuffer[6];
@@ -454,7 +454,7 @@ unsigned char CommandProcess(void)
 				Picc.Type = Cmd.ReceiveBuffer[3];
 				Picc.Type <<= 8;
 				Picc.Type |= Cmd.ReceiveBuffer[4];
-			
+
 				Picc.UID = Cmd.ReceiveBuffer[5];
 				Picc.UID <<= 8;
 				Picc.UID |= Cmd.ReceiveBuffer[6];
@@ -462,7 +462,7 @@ unsigned char CommandProcess(void)
 				Picc.UID |= Cmd.ReceiveBuffer[7];
 				Picc.UID <<= 8;
 				Picc.UID |= Cmd.ReceiveBuffer[8];
-			
+
 				Picc.Value = Cmd.ReceiveBuffer[9];
 				Picc.Value <<= 8;
 				Picc.Value = Cmd.ReceiveBuffer[10];
@@ -475,7 +475,7 @@ unsigned char CommandProcess(void)
 				Picc.Type = Cmd.ReceiveBuffer[3];
 				Picc.Type <<= 8;
 				Picc.Type |= Cmd.ReceiveBuffer[4];
-			
+
 				Picc.UID = Cmd.ReceiveBuffer[5];
 				Picc.UID <<= 8;
 				Picc.UID |= Cmd.ReceiveBuffer[6];
@@ -483,7 +483,7 @@ unsigned char CommandProcess(void)
 				Picc.UID |= Cmd.ReceiveBuffer[7];
 				Picc.UID <<= 8;
 				Picc.UID |= Cmd.ReceiveBuffer[8];
-			
+
 				Picc.Value = Cmd.ReceiveBuffer[9];
 				Picc.Value <<= 8;
 				Picc.Value = Cmd.ReceiveBuffer[10];
@@ -496,7 +496,7 @@ unsigned char CommandProcess(void)
 				Picc.Type = Cmd.ReceiveBuffer[3];
 				Picc.Type <<= 8;
 				Picc.Type |= Cmd.ReceiveBuffer[4];
-			
+
 				Picc.UID = Cmd.ReceiveBuffer[5];
 				Picc.UID <<= 8;
 				Picc.UID |= Cmd.ReceiveBuffer[6];
@@ -504,7 +504,7 @@ unsigned char CommandProcess(void)
 				Picc.UID |= Cmd.ReceiveBuffer[7];
 				Picc.UID <<= 8;
 				Picc.UID |= Cmd.ReceiveBuffer[8];
-			
+
 				for(i = 0; i < 16; i ++)
 				{
 					Picc.BlockData[i] = Cmd.ReceiveBuffer[9 + i];
@@ -514,7 +514,7 @@ unsigned char CommandProcess(void)
 				Picc.Type = Cmd.ReceiveBuffer[3];
 				Picc.Type <<= 8;
 				Picc.Type |= Cmd.ReceiveBuffer[4];
-			
+
 				Picc.UID = Cmd.ReceiveBuffer[5];
 				Picc.UID <<= 8;
 				Picc.UID |= Cmd.ReceiveBuffer[6];
@@ -522,7 +522,7 @@ unsigned char CommandProcess(void)
 				Picc.UID |= Cmd.ReceiveBuffer[7];
 				Picc.UID <<= 8;
 				Picc.UID |= Cmd.ReceiveBuffer[8];
-			
+
 				break;
 			default:
 				return 0xFD;

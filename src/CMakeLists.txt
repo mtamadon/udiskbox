@@ -11,8 +11,11 @@ INCLUDE_DIRECTORIES(
 )
 
 aux_source_directory(. MAIN_SRCS)
+include_directories(./DS1302)
 aux_source_directory(./DS1302 DS1302_SRCS)
+include_directories(./RFID)
 aux_source_directory(./RFID RFID_SRCS)
+include_directories(./Usart)
 aux_source_directory(./Usart USART_SRCS)
 message(STATUS "main srcs" ${MAIN_SRCS})
 

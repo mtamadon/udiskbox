@@ -9,6 +9,9 @@
 //端口定义
 /////////////////////////////////////////////////////////////////////
 //MFRC522
+#define MF522_PORT                       GPIOD
+#define __HAL_RCC_MF522_PORT_CLK_ENABLE __HAL_RCC_GPIOD_CLK_ENABLE
+
 #define MF522_RST_PIN                    GPIO_PIN_0
 #define MF522_RST_PORT                   GPIOD
 #define MF522_RST_CLK                    RCC_APB2Periph_GPIOD

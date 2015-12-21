@@ -1,7 +1,7 @@
 /********************************************************************************
  * vim:sw=8:ts=8:si:et
  * To use the above modeline in vim you must have "set modeline" in your .vimrc
- * Author: Guido Socher 
+ * Author: Guido Socher
  * Copyright: GPL V2
  * http://www.gnu.org/licenses/gpl.html
  *
@@ -24,9 +24,9 @@ static unsigned int NextPacketPtr;
 unsigned char enc28j60ReadOp(unsigned char op, unsigned char address)
 {
     unsigned char dat = 0;
-    
+
     ENC28J60_CSL();
-    
+
     dat = op | (address & ADDR_MASK);
     SPI1_ReadWrite(dat);
     dat = SPI1_ReadWrite(0xFF);
@@ -43,7 +43,7 @@ unsigned char enc28j60ReadOp(unsigned char op, unsigned char address)
 void enc28j60WriteOp(unsigned char op, unsigned char address, unsigned char data)
 {
     unsigned char dat = 0;
-    
+
     ENC28J60_CSL();
     // issue write command
     dat = op | (address & ADDR_MASK);
@@ -75,7 +75,7 @@ void enc28j60WriteBuffer(unsigned int len, unsigned char* data)
     ENC28J60_CSL();
     // issue write command
     SPI1_ReadWrite(ENC28J60_WRITE_BUF_MEM);
-    
+
     while(len)
     {
         len--;
@@ -135,24 +135,24 @@ void enc28j60clkout(unsigned char clk)
 }
 
 void enc28j60Init(unsigned char* macaddr)
-{   
-    ENC28J60_CSH();	      
+{
+    ENC28J60_CSH();
 
     // perform system reset
     enc28j60WriteOp(ENC28J60_SOFT_RESET, 0, ENC28J60_SOFT_RESET);
-   
+
     // check CLKRDY bit to see if reset is complete
     // The CLKRDY does not work. See Rev. B4 Silicon Errata point. Just wait.
     //while(!(enc28j60Read(ESTAT) & ESTAT_CLKRDY));
     // do bank 0 stuff
     // initialize receive buffer
     // 16-bit transfers, must write low byte first
-    // set receive buffer start address	   
+    // set receive buffer start address
     NextPacketPtr = RXSTART_INIT;
-    // Rx start    
-    enc28j60Write(ERXSTL, RXSTART_INIT&0xFF);	 
+    // Rx start
+    enc28j60Write(ERXSTL, RXSTART_INIT&0xFF);
     enc28j60Write(ERXSTH, RXSTART_INIT>>8);
-    // set receive pointer address     
+    // set receive pointer address
     enc28j60Write(ERXRDPTL, RXSTART_INIT&0xFF);
     enc28j60Write(ERXRDPTH, RXSTART_INIT>>8);
     // RX end
@@ -174,16 +174,16 @@ void enc28j60Init(unsigned char* macaddr)
     // 06 08 -- ff ff ff ff ff ff -> ip checksum for theses bytes=f7f9
     // in binary these poitions are:11 0000 0011 1111
     // This is hex 303F->EPMM0=0x3f,EPMM1=0x30
-    
+
     enc28j60Write(ERXFCON, ERXFCON_UCEN|ERXFCON_CRCEN|ERXFCON_PMEN);
     enc28j60Write(EPMM0, 0x3f);
     enc28j60Write(EPMM1, 0x30);
     enc28j60Write(EPMCSL, 0xf9);
-    enc28j60Write(EPMCSH, 0xf7);    
+    enc28j60Write(EPMCSH, 0xf7);
     enc28j60Write(MACON1, MACON1_MARXEN|MACON1_TXPAUS|MACON1_RXPAUS);
-    // bring MAC out of reset 
+    // bring MAC out of reset
     enc28j60Write(MACON2, 0x00);
-    
+
     enc28j60WriteOp(ENC28J60_BIT_FIELD_SET, MACON3, MACON3_PADCFG0|MACON3_TXCRCEN|MACON3_FRMLNEN|MACON3_FULDPX);
     // set inter-frame gap (non-back-to-back)
 
@@ -194,26 +194,26 @@ void enc28j60Init(unsigned char* macaddr)
     enc28j60Write(MABBIPG, 0x15);
     // Set the maximum packet size which the controller will accept
     // Do not send packets longer than MAX_FRAMELEN:
-  
-    enc28j60Write(MAMXFLL, MAX_FRAMELEN&0xFF);	
+
+    enc28j60Write(MAMXFLL, MAX_FRAMELEN&0xFF);
     enc28j60Write(MAMXFLH, MAX_FRAMELEN>>8);
     // do bank 3 stuff
     // write MAC address
     // NOTE: MAC address in ENC28J60 is byte-backward
-    enc28j60Write(MAADR5, macaddr[0]);	
+    enc28j60Write(MAADR5, macaddr[0]);
     enc28j60Write(MAADR4, macaddr[1]);
     enc28j60Write(MAADR3, macaddr[2]);
     enc28j60Write(MAADR2, macaddr[3]);
     enc28j60Write(MAADR1, macaddr[4]);
     enc28j60Write(MAADR0, macaddr[5]);
 
-    //ÅäÖÃPHYÎªÈ«Ë«¹¤  LEDBÎªÀ­µçÁ÷
-    enc28j60PhyWrite(PHCON1, PHCON1_PDPXMD);    
-    
+    //é…ç½®PHYä¸ºå…¨åŒå·¥  LEDBä¸ºæ‹‰ç”µæµ
+    enc28j60PhyWrite(PHCON1, PHCON1_PDPXMD);
+
     // no loopback of transmitted frames
     enc28j60PhyWrite(PHCON2, PHCON2_HDLDIS);
 
-    // switch to bank 0    
+    // switch to bank 0
     enc28j60SetBank(ECON1);
 
     // enable interrutps
@@ -226,9 +226,9 @@ void enc28j60Init(unsigned char* macaddr)
 // read the revision of the chip:
 unsigned char enc28j60getrev(void)
 {
-    //ÔÚEREVID ÄÚÒ²´æ´¢ÁË°æ±¾ÐÅÏ¢¡£ EREVID ÊÇÒ»¸öÖ»¶Á¿Ø
-    //ÖÆ¼Ä´æÆ÷£¬°üº¬Ò»¸ö5 Î»±êÊ¶·û£¬ÓÃÀ´±êÊ¶Æ÷¼þÌØ¶¨¹èÆ¬
-    //µÄ°æ±¾ºÅ
+    //åœ¨EREVID å†…ä¹Ÿå­˜å‚¨äº†ç‰ˆæœ¬ä¿¡æ¯ã€‚ EREVID æ˜¯ä¸€ä¸ªåªè¯»æŽ§
+    //åˆ¶å¯„å­˜å™¨ï¼ŒåŒ…å«ä¸€ä¸ª5 ä½æ ‡è¯†ç¬¦ï¼Œç”¨æ¥æ ‡è¯†å™¨ä»¶ç‰¹å®šç¡…ç‰‡
+    //çš„ç‰ˆæœ¬å·
     return(enc28j60Read(EREVID));
 }
 
@@ -237,20 +237,20 @@ void enc28j60PacketSend(unsigned int len, unsigned char* packet)
     // Set the write pointer to start of transmit buffer area
     enc28j60Write(EWRPTL, TXSTART_INIT&0xFF);
     enc28j60Write(EWRPTH, TXSTART_INIT>>8);
-    
+
     // Set the TXND pointer to correspond to the packet size given
     enc28j60Write(ETXNDL, (TXSTART_INIT+len)&0xFF);
     enc28j60Write(ETXNDH, (TXSTART_INIT+len)>>8);
-    
+
     // write per-packet control byte (0x00 means use macon3 settings)
     enc28j60WriteOp(ENC28J60_WRITE_BUF_MEM, 0, 0x00);
-    
+
     // copy the packet into the transmit buffer
     enc28j60WriteBuffer(len, packet);
-    
+
     // send the contents of the transmit buffer onto the network
     enc28j60WriteOp(ENC28J60_BIT_FIELD_SET, ECON1, ECON1_TXRTS);
-    
+
     // Reset the transmit logic problem. See Rev. B4 Silicon Errata point 12.
     if( (enc28j60Read(EIR) & EIR_TXERIF) )
     {
@@ -268,27 +268,27 @@ unsigned int enc28j60PacketReceive(unsigned int maxlen, unsigned char* packet)
 {
     unsigned int rxstat;
     unsigned int len;
-    
+
     // check if a packet has been received and buffered
     //if( !(enc28j60Read(EIR) & EIR_PKTIF) ){
     // The above does not work. See Rev. B4 Silicon Errata point 6.
-    if( enc28j60Read(EPKTCNT) ==0 )  //ÊÕµ½µÄÒÔÌ«ÍøÊý¾Ý°ü³¤¶È
+    if( enc28j60Read(EPKTCNT) ==0 )  //æ”¶åˆ°çš„ä»¥å¤ªç½‘æ•°æ®åŒ…é•¿åº¦
     {
         return(0);
     }
-    
-    // Set the read pointer to the start of the received packet		 »º³åÆ÷¶ÁÖ¸Õë
+
+    // Set the read pointer to the start of the received packet		 ç¼“å†²å™¨è¯»æŒ‡é’ˆ
     enc28j60Write(ERDPTL, (NextPacketPtr));
     enc28j60Write(ERDPTH, (NextPacketPtr)>>8);
-    
+
     // read the next packet pointer
     NextPacketPtr  = enc28j60ReadOp(ENC28J60_READ_BUF_MEM, 0);
     NextPacketPtr |= enc28j60ReadOp(ENC28J60_READ_BUF_MEM, 0)<<8;
-    
+
     // read the packet length (see datasheet page 43)
     len  = enc28j60ReadOp(ENC28J60_READ_BUF_MEM, 0);
     len |= enc28j60ReadOp(ENC28J60_READ_BUF_MEM, 0)<<8;
-    
+
     len-=4; //remove the CRC count
     // read the receive status (see datasheet page 43)
     rxstat  = enc28j60ReadOp(ENC28J60_READ_BUF_MEM, 0);
@@ -298,7 +298,7 @@ unsigned int enc28j60PacketReceive(unsigned int maxlen, unsigned char* packet)
     {
         len=maxlen-1;
     }
-    
+
     // check CRC and symbol errors (see datasheet page 44, table 7-3):
     // The ERXFCON.CRCEN is set by default. Normally we should not
     // need to check this.
@@ -316,7 +316,7 @@ unsigned int enc28j60PacketReceive(unsigned int maxlen, unsigned char* packet)
     // This frees the memory we just read out
     enc28j60Write(ERXRDPTL, (NextPacketPtr));
     enc28j60Write(ERXRDPTH, (NextPacketPtr)>>8);
-    
+
     // decrement the packet counter indicate we are done with this packet
     enc28j60WriteOp(ENC28J60_BIT_FIELD_SET, ECON2, ECON2_PKTDEC);
     return(len);

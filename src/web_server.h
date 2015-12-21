@@ -4,18 +4,13 @@
 int Web_Server(void);
 void SetIpMac(void);
 
+#define PSTR(s) s
 
-
-#define PSTR(s) s	
-
-/* LED1 ¡¡√∫Í∂®“Â */
+/* LED1 ‰∫ÆÁÅ≠ÂÆèÂÆö‰πâ */
 //#define LED1_ON()  GPIO_SetBits(GPIOC, GPIO_PIN_3);
 //#define LED1_ON()  GPIO_SetBits(GPIOC, GPIO_PIN_3);
 //#define LED1_OFF()  GPIO_ResetBits(GPIOC, GPIO_PIN_3);
 //#define LED1_OFF()  GPIO_ResetBits(GPIOC, GPIO_PIN_3);
-
-
-
 
 #endif
 

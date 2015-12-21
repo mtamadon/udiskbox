@@ -9,7 +9,7 @@
 / Additional user header to be used
 /-----------------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
-//#include "stm3210e_eval_sd.h"
+#include "stm3210e_eval_sd.h"
 /*-----------------------------------------------------------------------------/
 / Functions and Buffer Configurations
 /---------------------------------------------------------------------------*/
@@ -86,7 +86,7 @@
 / Locale and Namespace Configurations
 /---------------------------------------------------------------------------*/
 
-#define _CODE_PAGE         1252
+#define _CODE_PAGE         936
 /* This option specifies the OEM code page to be used on the target system.
 /  Incorrect setting of the code page can cause a file open failure.
 /

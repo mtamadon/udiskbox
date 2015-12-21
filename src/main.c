@@ -17,7 +17,6 @@
 #include "ff_gen_drv.h"
 #include "sd_diskio.h"
 
-#include "usually.h"
 #include "usart.h"
 #include "PICC.h"
 #include "string.h"
@@ -160,7 +159,7 @@ int main(void)
 
     /* ENC28J60 SPI 接口初始化 */
     SPI_Enc28j60_Init();//函数初始化
-    SetIpMac();
+    /*SetIpMac();*/ //TODO
     gflag_send=0;       //变量初始化
     send_count=0;
     /* 挂载文件系统*/
@@ -178,7 +177,7 @@ int main(void)
         ReadDS1302Clock(tt);
         Time_Conv(tt,6,LCDSTRUCT.TimeNow);
         ////////////////////////////////////////////////////////////////////////////////////      检测开箱
-        Web_Server();   //网络模块开始工作
+        /*Web_Server();   //网络模块开始工作*/ //TODO
 
         //////////////////////////////////////////////////////////////////////
         bTemp = CommandProcess();
@@ -315,12 +314,7 @@ int main(void)
             strcpy(LCDSTRUCT.UdiskInfo2,strtmp);strcat(LCDSTRUCT.UdiskInfo2," (2)");
         }
         LCDUpdate('a');
-
-
-
-
     }
-
 
 }
 
@@ -581,7 +575,7 @@ void LCDUpdate(char stype)
         case 'u':
             {
                 strcpy(UserID_Array,"DS16(100,48,'");strcat(UserID_Array,LCDSTRUCT.UserID);strcat(UserID_Array,"',4);");Lcd_Display(UserID_Array);
-                LED2=~LED2;
+                /*LED2=~LED2;*/ //FIXME: GPIOD Pin 13 invert
             }break;
         case 'p':
             {

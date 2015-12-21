@@ -1,20 +1,20 @@
-/******************** (C) COPYRIGHT 2011 ÃÔÄãÇ¶ÈëÊ½¿ª·¢¹¤×÷ÊÒ ********************
- * ÎÄ¼şÃû  £ºsimple_server.c
- * ÃèÊö    £ºweb·şÎñ³ÌĞòÓ¦ÓÃº¯Êı¿â
- *          
- * ÊµÑéÆ½Ì¨£ºÒ°»ğSTM32¿ª·¢°å
- * Ó²¼şÁ¬½Ó£º ------------------------------------
- *           |PB13         £ºENC28J60-INT (Ã»ÓÃµ½)|
- *           |PA6-SPI1-MISO£ºENC28J60-SO          |
- *           |PA7-SPI1-MOSI£ºENC28J60-SI          |
- *           |PA5-SPI1-SCK £ºENC28J60-SCK         |
- *           |PA4-SPI1-NSS £ºENC28J60-CS          |
- *           |PE1          £ºENC28J60-RST (Ã»ÓÃ)  |
- *            ------------------------------------
- * ¿â°æ±¾  £ºST3.0.0
+/******************** (C) COPYRIGHT 2011 è¿·ä½ åµŒå…¥å¼å¼€å‘å·¥ä½œå®¤ ********************
+ * æ–‡ä»¶å  ï¼šsimple_server.c
+ * æè¿°    ï¼šwebæœåŠ¡ç¨‹åºåº”ç”¨å‡½æ•°åº“
  *
- * ×÷Õß    £ºfire  QQ: 313303034
- * ²©¿Í    £ºfirestm32.blog.chinaunix.net
+ * å®éªŒå¹³å°ï¼šé‡ç«STM32å¼€å‘æ¿
+ * ç¡¬ä»¶è¿æ¥ï¼š ------------------------------------
+ *           |PB13         ï¼šENC28J60-INT (æ²¡ç”¨åˆ°)|
+ *           |PA6-SPI1-MISOï¼šENC28J60-SO          |
+ *           |PA7-SPI1-MOSIï¼šENC28J60-SI          |
+ *           |PA5-SPI1-SCK ï¼šENC28J60-SCK         |
+ *           |PA4-SPI1-NSS ï¼šENC28J60-CS          |
+ *           |PE1          ï¼šENC28J60-RST (æ²¡ç”¨)  |
+ *            ------------------------------------
+ * åº“ç‰ˆæœ¬  ï¼šST3.0.0
+ *
+ * ä½œè€…    ï¼šfire  QQ: 313303034
+ * åšå®¢    ï¼šfirestm32.blog.chinaunix.net
 **********************************************************************************/
 #include "enc28j60.h"
 #include "ip_arp_udp_tcp.h"
@@ -23,48 +23,48 @@
 #include <string.h>
 #include "integer.h"
 
-//#include "led.h" 			// LED ÁÁÃğ¿ØÖÆÍ·ÎÄ¼ş
+//#include "led.h" 			// LED äº®ç­æ§åˆ¶å¤´æ–‡ä»¶
 
-/* macµØÖ·ºÍipµØÖ·ÔÚ¾ÖÓòÍøÄÚ±ØĞëÎ¨Ò»£¬·ñÔò½«ÓëÆäËûÖ÷»ú³åÍ»£¬µ¼ÖÂÁ¬½Ó²»³É¹¦ */
+/* macåœ°å€å’Œipåœ°å€åœ¨å±€åŸŸç½‘å†…å¿…é¡»å”¯ä¸€ï¼Œå¦åˆ™å°†ä¸å…¶ä»–ä¸»æœºå†²çªï¼Œå¯¼è‡´è¿æ¥ä¸æˆåŠŸ */
 static unsigned char mymac[6] = {0x54,0x55,0x58,0x10,0x00,0x24};
 static unsigned char myip[4] = {192,168,1,98};
 
-/* ipµØÖ·(»òÕßÊÇDNSµÄÃû×Ö£¬Èç¹ûÓĞDNS·şÎñÆ÷µÄ»°)£¬ipµØÖ·±ØĞëÒÔ"/"½áÎ² */
+/* ipåœ°å€(æˆ–è€…æ˜¯DNSçš„åå­—ï¼Œå¦‚æœæœ‰DNSæœåŠ¡å™¨çš„è¯)ï¼Œipåœ°å€å¿…é¡»ä»¥"/"ç»“å°¾ */
 //static char baseurl[]="http://192.168.1.1/";
 
-/* tcp/www¼àÌı¶Ë¿ÚºÅ£¬·¶Î§Îª:1-254 */
-static unsigned int mywwwport =80; 
+/* tcp/wwwç›‘å¬ç«¯å£å·ï¼ŒèŒƒå›´ä¸º:1-254 */
+static unsigned int mywwwport =80;
 
-/* udp ¼àÌı¶Ë¿ÚºÅ£¬¼´±¾µØ(¿ª·¢°å)¶Ë¿ÚºÅ */
-static unsigned int myudpport =1200; 
+/* udp ç›‘å¬ç«¯å£å·ï¼Œå³æœ¬åœ°(å¼€å‘æ¿)ç«¯å£å· */
+static unsigned int myudpport =1200;
 
-/* ·¢ËÍÊı¾İ»º³åÇø */
+/* å‘é€æ•°æ®ç¼“å†²åŒº */
 #define BUFFER_SIZE 1500
 unsigned char buf[1501];
 
-/* ÃÜÂë,²»ÄÜ´óÓÚ9¸ö×Ö·û(Ö»ÓĞÃÜÂëµÄÇ°5Î»»á±»¼ì²â)£¬(×Ö·ûÏŞ¶¨Îª£ºa-z,0-9) */
-static char password[]="123456"; 
+/* å¯†ç ,ä¸èƒ½å¤§äº9ä¸ªå­—ç¬¦(åªæœ‰å¯†ç çš„å‰5ä½ä¼šè¢«æ£€æµ‹)ï¼Œ(å­—ç¬¦é™å®šä¸ºï¼ša-z,0-9) */
+static char password[]="123456";
 
 unsigned char indarray[20]="";
 unsigned int lenind=0;
 unsigned char glflag=0;
 
 
-//Íâ²¿º¯ÊıÉùÃ÷Çø
+//å¤–éƒ¨å‡½æ•°å£°æ˜åŒº
 extern int writelog(unsigned char * filename,unsigned char * filecontent,unsigned char lencont,unsigned char sflag);
 extern int printallfile(unsigned char * filename );
 
 
-// Íâ²¿±äÁ¿ÉùÃ÷Çø
+// å¤–éƒ¨å˜é‡å£°æ˜åŒº
 extern unsigned char gflag_send;
 extern DWORD send_count;
 /*
- * º¯ÊıÃû£ºverify_password
- * ÃèÊö  £ºÈ·ÈÏÃÜÂë
- * ÊäÈë  £ºstr
- * Êä³ö  £ºÎŞ
- * ·µ»Ø  £º
- */ 
+ * å‡½æ•°åï¼šverify_password
+ * æè¿°  ï¼šç¡®è®¤å¯†ç 
+ * è¾“å…¥  ï¼šstr
+ * è¾“å‡º  ï¼šæ— 
+ * è¿”å›  ï¼š
+ */
 unsigned char verify_password(char *str)
 {
     // the first characters of the received string are
@@ -77,12 +77,12 @@ unsigned char verify_password(char *str)
 }
 
 /*
- * º¯ÊıÃû£ºanalyse_get_url
- * ÃèÊö  £ºtakes a string of the form password/commandNumber and analyse it
- * ÊäÈë  £ºstr
- * Êä³ö  £º-1 invalid password, otherwise command number
+ * å‡½æ•°åï¼šanalyse_get_url
+ * æè¿°  ï¼štakes a string of the form password/commandNumber and analyse it
+ * è¾“å…¥  ï¼šstr
+ * è¾“å‡º  ï¼š-1 invalid password, otherwise command number
  *         -2	no command given but password valid
- * ·µ»Ø  £º
+ * è¿”å›  ï¼š
  */
 unsigned char analyse_get_url(char *str)
 {
@@ -112,128 +112,128 @@ unsigned char analyse_get_url(char *str)
 }
 
 /*
- * º¯ÊıÃû£ºprint_webpage
- * ÃèÊö  £º½«Êı¾İĞ´µ½tcpµÄ·¢ËÍ»º³åÇø(ÒÔÊµÏÖÒ»¸öÍøÒ³)
- * ÊäÈë  £º-buf
+ * å‡½æ•°åï¼šprint_webpage
+ * æè¿°  ï¼šå°†æ•°æ®å†™åˆ°tcpçš„å‘é€ç¼“å†²åŒº(ä»¥å®ç°ä¸€ä¸ªç½‘é¡µ)
+ * è¾“å…¥  ï¼š-buf
  *         -on_off
- * Êä³ö  £ºÎŞ
- * ·µ»Ø  £º-plen
+ * è¾“å‡º  ï¼šæ— 
+ * è¿”å›  ï¼š-plen
  */
 unsigned int print_webpage(unsigned char *buf,unsigned char on_off)
 {
     unsigned int plen;
-		/* ĞÂ½¨Ò»¸öÍøÒ³£¬¾ÍÏñĞÂ½¨Ò»¸öÎÄ¼şÒ»Ñù */
+		/* æ–°å»ºä¸€ä¸ªç½‘é¡µï¼Œå°±åƒæ–°å»ºä¸€ä¸ªæ–‡ä»¶ä¸€æ · */
     plen=fill_tcp_data_p(buf,0,PSTR("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nPragma: no-cache\r\n\r\n"));
-	
-		/* ÔÚÍøÒ³ÕıÖĞÑëÌîĞ´ĞÅÏ¢ */
-    plen=fill_tcp_data_p(buf,plen,PSTR("<center><p> µ±Ç°UÅÌ×´Ì¬: <p>"));
 
-    
+		/* åœ¨ç½‘é¡µæ­£ä¸­å¤®å¡«å†™ä¿¡æ¯ */
+    plen=fill_tcp_data_p(buf,plen,PSTR("<center><p> å½“å‰Uç›˜çŠ¶æ€: <p>"));
 
-    plen=fill_tcp_data_p(buf,plen,PSTR(" <br>Î»ÖÃ1£º:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>Î»ÖÃ2£º:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>Î»ÖÃ3£º:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>Î»ÖÃ4£º:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>Î»ÖÃ5£º:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>Î»ÖÃ6£º:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>Î»ÖÃ7£º:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>Î»ÖÃ8£º:"));
 
-    
-    
-    plen=fill_tcp_data_p(buf,plen,PSTR("<hr><br>****************^_^ »¶Ó­Ê¹ÓÃ¹¤³ÌÈıÊÒÍøÒ³¹ÜÀíÏµÍ³ ^_^****************\n</center>"));
-    //plen=fill_tcp_data_p(buf,plen,PSTR("ÕâÊÇÒ»¸ö web ²âÊÔ³ÌĞò"));
-    
+
+    plen=fill_tcp_data_p(buf,plen,PSTR(" <br>ä½ç½®1ï¼š:"));
+	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>ä½ç½®2ï¼š:"));
+	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>ä½ç½®3ï¼š:"));
+	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>ä½ç½®4ï¼š:"));
+	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>ä½ç½®5ï¼š:"));
+	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>ä½ç½®6ï¼š:"));
+	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>ä½ç½®7ï¼š:"));
+	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>ä½ç½®8ï¼š:"));
+
+
+
+    plen=fill_tcp_data_p(buf,plen,PSTR("<hr><br>****************^_^ æ¬¢è¿ä½¿ç”¨å·¥ç¨‹ä¸‰å®¤ç½‘é¡µç®¡ç†ç³»ç»Ÿ ^_^****************\n</center>"));
+    //plen=fill_tcp_data_p(buf,plen,PSTR("è¿™æ˜¯ä¸€ä¸ª web æµ‹è¯•ç¨‹åº"));
+
     return(plen);
 }
 /*
- * º¯ÊıÃû£ºSetIpMac
- * ÃèÊö  £ºÉèÖÃIPµØÖ·ºÍMacµØÖ·
- * ÊäÈë  £ºÎŞ
- * Êä³ö  £ºÎŞ
- * ·µ»Ø  £º-0 ÔËĞĞ³É¹¦
- * Ó¦ÓÃ  £º1 ÔÚPC»úµÄDOS½çÃæÊäÈë£º ping 192.168.1.15 (¿´ÄÜ·ñpingÍ¨)
- *         2 ÔÚIEä¯ÀÀÆ÷ÖĞÊäÈë£ºhttp://192.168.1.15/123456 Ôò»á³öÏÖÒ»¸öÍøÒ³£¬Í¨¹ıÍøÒ³
- *           ÖĞµÄÃüÁî¿ÉÒÔ¿ØÖÆ¿ª·¢°åÖĞµÄLEDµÄÁÁÃğ
+ * å‡½æ•°åï¼šSetIpMac
+ * æè¿°  ï¼šè®¾ç½®IPåœ°å€å’ŒMacåœ°å€
+ * è¾“å…¥  ï¼šæ— 
+ * è¾“å‡º  ï¼šæ— 
+ * è¿”å›  ï¼š-0 è¿è¡ŒæˆåŠŸ
+ * åº”ç”¨  ï¼š1 åœ¨PCæœºçš„DOSç•Œé¢è¾“å…¥ï¼š ping 192.168.1.15 (çœ‹èƒ½å¦pingé€š)
+ *         2 åœ¨IEæµè§ˆå™¨ä¸­è¾“å…¥ï¼šhttp://192.168.1.15/123456 åˆ™ä¼šå‡ºç°ä¸€ä¸ªç½‘é¡µï¼Œé€šè¿‡ç½‘é¡µ
+ *           ä¸­çš„å‘½ä»¤å¯ä»¥æ§åˆ¶å¼€å‘æ¿ä¸­çš„LEDçš„äº®ç­
  */
 
 void SetIpMac()
 {
-	/* ³õÊ¼»¯ enc28j60 µÄMACµØÖ·(ÎïÀíµØÖ·),Õâ¸öº¯Êı±ØĞëÒªµ÷ÓÃÒ»´Î */
+	/* åˆå§‹åŒ– enc28j60 çš„MACåœ°å€(ç‰©ç†åœ°å€),è¿™ä¸ªå‡½æ•°å¿…é¡»è¦è°ƒç”¨ä¸€æ¬¡ */
   enc28j60Init(mymac);
 
-	/* PHY LED ÅäÖÃ,LEDÓÃÀ´Ö¸Ê¾Í¨ĞÅµÄ×´Ì¬ */	
-  enc28j60PhyWrite(PHLCON,0x476);	
-	
-	/* ½«enc28j60µÚÈıÒı½ÅµÄÊ±ÖÓÊä³ö¸ÄÎª£ºfrom 6.25MHz to 12.5MHz(±¾Àı³Ì¸ÃÒı½ÅNC,Ã»ÓÃµ½) */	
-  //enc28j60clkout(2);    
-  
-	/* ³õÊ¼»¯ÒÔÌ«Íø IP ²ã */
+	/* PHY LED é…ç½®,LEDç”¨æ¥æŒ‡ç¤ºé€šä¿¡çš„çŠ¶æ€ */
+  enc28j60PhyWrite(PHLCON,0x476);
+
+	/* å°†enc28j60ç¬¬ä¸‰å¼•è„šçš„æ—¶é’Ÿè¾“å‡ºæ”¹ä¸ºï¼šfrom 6.25MHz to 12.5MHz(æœ¬ä¾‹ç¨‹è¯¥å¼•è„šNC,æ²¡ç”¨åˆ°) */
+  //enc28j60clkout(2);
+
+	/* åˆå§‹åŒ–ä»¥å¤ªç½‘ IP å±‚ */
 	init_ip_arp_udp_tcp(mymac,myip,mywwwport);
-	
+
 }
 
 /*
- * º¯ÊıÃû£ºSendTcp
- * ÃèÊö  £ºÔÚä¯ÀÀÆ÷ÉÏ´´½¨Ò»¸öweb·şÎñÆ÷£¬Í¨¹ıwebÀïÃæµÄÃüÁîÀ´¿ØÖÆ¿ª·¢°åÉÏµÄLEDµÄÁÁÃğ¡£
- * ÊäÈë  £ºÎŞ
- * Êä³ö  £ºÎŞ
- * ·µ»Ø  £º-0 ÔËĞĞ³É¹¦
+ * å‡½æ•°åï¼šSendTcp
+ * æè¿°  ï¼šåœ¨æµè§ˆå™¨ä¸Šåˆ›å»ºä¸€ä¸ªwebæœåŠ¡å™¨ï¼Œé€šè¿‡webé‡Œé¢çš„å‘½ä»¤æ¥æ§åˆ¶å¼€å‘æ¿ä¸Šçš„LEDçš„äº®ç­ã€‚
+ * è¾“å…¥  ï¼šæ— 
+ * è¾“å‡º  ï¼šæ— 
+ * è¿”å›  ï¼š-0 è¿è¡ŒæˆåŠŸ
  */
 void SendTcp(unsigned int plen)
 {
               make_tcp_ack_from_any(buf);       // send ack for http get
               make_tcp_ack_with_data(buf,plen); // send data
-	
+
 }
 
 
 
 /*
- * º¯ÊıÃû£ºWeb_Server
- * ÃèÊö  £ºÔÚä¯ÀÀÆ÷ÉÏ´´½¨Ò»¸öweb·şÎñÆ÷£¬Í¨¹ıwebÀïÃæµÄÃüÁîÀ´¿ØÖÆ¿ª·¢°åÉÏµÄLEDµÄÁÁÃğ¡£
- * ÊäÈë  £ºÎŞ
- * Êä³ö  £ºÎŞ
- * ·µ»Ø  £º-0 ÔËĞĞ³É¹¦
- * Ó¦ÓÃ  £º1 ÔÚPC»úµÄDOS½çÃæÊäÈë£º ping 192.168.1.15 (¿´ÄÜ·ñpingÍ¨)
- *         2 ÔÚIEä¯ÀÀÆ÷ÖĞÊäÈë£ºhttp://192.168.1.15/123456 Ôò»á³öÏÖÒ»¸öÍøÒ³£¬Í¨¹ıÍøÒ³
- *           ÖĞµÄÃüÁî¿ÉÒÔ¿ØÖÆ¿ª·¢°åÖĞµÄLEDµÄÁÁÃğ
+ * å‡½æ•°åï¼šWeb_Server
+ * æè¿°  ï¼šåœ¨æµè§ˆå™¨ä¸Šåˆ›å»ºä¸€ä¸ªwebæœåŠ¡å™¨ï¼Œé€šè¿‡webé‡Œé¢çš„å‘½ä»¤æ¥æ§åˆ¶å¼€å‘æ¿ä¸Šçš„LEDçš„äº®ç­ã€‚
+ * è¾“å…¥  ï¼šæ— 
+ * è¾“å‡º  ï¼šæ— 
+ * è¿”å›  ï¼š-0 è¿è¡ŒæˆåŠŸ
+ * åº”ç”¨  ï¼š1 åœ¨PCæœºçš„DOSç•Œé¢è¾“å…¥ï¼š ping 192.168.1.15 (çœ‹èƒ½å¦pingé€š)
+ *         2 åœ¨IEæµè§ˆå™¨ä¸­è¾“å…¥ï¼šhttp://192.168.1.15/123456 åˆ™ä¼šå‡ºç°ä¸€ä¸ªç½‘é¡µï¼Œé€šè¿‡ç½‘é¡µ
+ *           ä¸­çš„å‘½ä»¤å¯ä»¥æ§åˆ¶å¼€å‘æ¿ä¸­çš„LEDçš„äº®ç­
  */
 int Web_Server(void)
-{   
+{
 	unsigned int plen, i1 = 0;
 	unsigned int dat_p;
 	unsigned char  *buf1;
 	unsigned int payloadlen = 0;
-   
-			// get the next new packet:			
-      plen = enc28j60PacketReceive(BUFFER_SIZE, buf); 	
-      
-      // plen will ne unequal to zero if there is a valid packet (without crc error)			
+
+			// get the next new packet:
+      plen = enc28j60PacketReceive(BUFFER_SIZE, buf);
+
+      // plen will ne unequal to zero if there is a valid packet (without crc error)
       if(plen==0)
       {
           return (0);
       }
 
       // arp is broadcast if unknown but a host may also
-      // verify the mac address by sending it to 
-      // a unicast address.		     
+      // verify the mac address by sending it to
+      // a unicast address.
       if(eth_type_is_arp_and_my_ip(buf,plen))
       {
-          make_arp_answer_from_request(buf);          
+          make_arp_answer_from_request(buf);
           return (0);
       }
-      
-      // check if ip packets are for us:			
-      if(eth_type_is_ip_and_my_ip(buf,plen)==0) 
+
+      // check if ip packets are for us:
+      if(eth_type_is_ip_and_my_ip(buf,plen)==0)
       {
          return (0);
-      }      
-      
+      }
+
       if(buf[IP_PROTO_P]==IP_PROTO_ICMP_V && buf[ICMP_TYPE_P]==ICMP_TYPE_ECHOREQUEST_V)
       {
-          // a ping packet, let's send pong  DOS ÏÂµÄ ping ÃüÁî°ü		 
-          make_echo_reply_from_request(buf, plen);          
+          // a ping packet, let's send pong  DOS ä¸‹çš„ ping å‘½ä»¤åŒ…
+          make_echo_reply_from_request(buf, plen);
           return (0);
       }
 
@@ -263,33 +263,33 @@ int Web_Server(void)
               }
 							if (strncmp("user",(char *)&(buf[dat_p]),4)==0)
               {
-								 
+
 								  lenind=buf[dat_p+4]*256;
 								  lenind+=buf[dat_p+5];
 								  memcpy(indarray,buf+dat_p+4+2,lenind);
-								  // glflag=1;   //Ğ´ÈëÓÃ»§Ãû
+								  // glflag=1;   //å†™å…¥ç”¨æˆ·å
 								  writelog("0:/test.txt",indarray,lenind,1);
 								  indarray[lenind]='\0';
 								  plen=fill_tcp_data_p(buf,0,indarray);
                   SendTcp(plen);
 								  return (0);
               }
-							if (strncmp("logr",(char *)&(buf[dat_p]),4)==0) //¶ÁÈ¡logÈÕÖ¾
+							if (strncmp("logr",(char *)&(buf[dat_p]),4)==0) //è¯»å–logæ—¥å¿—
               {
-                               
-								
+
+
 								  printallfile("0:/test.txt");
 								  return (0);
               }
-							if (strncmp("logs",(char *)&(buf[dat_p]),4)==0) //³õ´Î¶ÁÈ¡logÈÕÖ¾
-              {							
+							if (strncmp("logs",(char *)&(buf[dat_p]),4)==0) //åˆæ¬¡è¯»å–logæ—¥å¿—
+              {
 								  gflag_send=0;
 								  send_count=0;
 								  return (0);
               }
-             
-             
-          //  plen=print_webpage(buf,(i));     
+
+
+          //  plen=print_webpage(buf,(i));
           //  make_tcp_ack_from_any(buf);       // send ack for http get
           //  make_tcp_ack_with_data(buf,plen); // send data
             return (0);
@@ -304,17 +304,17 @@ int Web_Server(void)
           payloadlen=payloadlen<<8;
           payloadlen=(payloadlen+buf[UDP_LEN_L_P])-UDP_HEADER_LEN;
           //payloadlen=buf[UDP_LEN_L_P]-UDP_HEADER_LEN;
-          
+
           //ANSWER:
           //while(1){
           for(i1=0; i1<payloadlen; i1++) buf1[i1]=buf[UDP_DATA_P+i1];
 				//printf("%s",buf);
-          
-          make_udp_reply_from_request(buf,buf1,payloadlen,myudpport);          
+
+          make_udp_reply_from_request(buf,buf1,payloadlen,myudpport);
           //}
       }
 /*----------------------------------------udp end -----------------------------------------------*/
-  
+
           return (0);
 }
 
