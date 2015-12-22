@@ -60,6 +60,20 @@ uint8_t USART1_Receive_Byte(void)
     return USART_ReceiveData(USART1);					   //接收一个字符
 }
 #endif
+
+USART_HandleTypeDef USART_Handle;
+void DebugLogConsoleConfig(USART_TypeDef * USART_X)
+{
+    USART_Handle.Instance            = USART_X;
+    USART_Handle.Init.BaudRate       = 115200 ;
+    USART_Handle.Init.WordLength     = USART_WORDLENGTH_8B;
+    USART_Handle.Init.StopBits       = USART_STOPBITS_1;
+    USART_Handle.Init.Parity         = USART_PARITY_NONE;
+    USART_Handle.Init.Mode           = USART_MODE_RX | USART_MODE_TX;
+    HAL_USART_Init(&USART_Handle);
+    __HAL_USART_ENABLE(&USART_Handle);
+}
+
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: Usart_Init
  ** 功能描述: 串口引脚初始化，初始化USART1、USART2、USART3
@@ -122,8 +136,8 @@ void Usart_Configuration(USART_TypeDef * USART_X, uint32_t BaudRate)
     USART_HandleStructure.Init.Parity         = USART_PARITY_NONE;	 	//奇偶失能
     USART_HandleStructure.Init.Mode           = USART_MODE_RX | USART_MODE_TX; //接收和发送模式
     HAL_USART_Init(&USART_HandleStructure);								//根据参数初始化串口寄存器
-    /*USART_ITConfig(USART_X,USART_IT_RXNE,ENABLE);							//使能串口中断接收*/
-    /*USART_Cmd(USART_X, ENABLE);     											//使能串口外设*/
+    /*USART_ITConfig(USART_X,USART_IT_RXNE,ENABLE);*/ //FIXME: 使能串口中断
+    /*USART_Cmd(USART_X, ENABLE);     					//使能串口外设*/
     __HAL_USART_ENABLE(&USART_HandleStructure);
 }
 

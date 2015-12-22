@@ -13,7 +13,7 @@
 #endif
 
 extern uint32_t __get_MSP(void);
-extern UART_HandleTypeDef UART_Handle;
+extern USART_HandleTypeDef USART_Handle;
 extern uint64_t virtualTimer;
 
 #undef errno
@@ -123,7 +123,7 @@ int _read(int file, char *ptr, int len)
     switch (file)
     {
     case STDIN_FILENO:
-        HAL_UART_Receive(&UART_Handle, (uint8_t *)ptr, 1, HAL_MAX_DELAY);
+        HAL_USART_Receive(&USART_Handle, (uint8_t *)ptr, 1, HAL_MAX_DELAY);
         return 1;
     default:
         errno = EBADF;

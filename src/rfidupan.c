@@ -666,7 +666,6 @@ void ncs_h(unsigned char cs)
 void ncs_l(void)
 {
     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4 | GPIO_PIN_5| GPIO_PIN_6| GPIO_PIN_7, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_4 | GPIO_PIN_5| GPIO_PIN_6| GPIO_PIN_7, GPIO_PIN_RESET);
 }
 
 void ncs(unsigned char cse)
