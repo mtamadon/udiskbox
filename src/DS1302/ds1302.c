@@ -1,7 +1,5 @@
 #include <stm32f1xx_hal.h>
 
-#define NOP() __NOP
-
 #define DS1302_CLK_H()	(GPIOE->BSRR=GPIO_PIN_4)
 #define DS1302_CLK_L()	(GPIOE->BRR=GPIO_PIN_4) //TODO: donot use BRR
 
@@ -39,13 +37,14 @@ void DS1302_Configuration(void)
 	HAL_GPIO_Init(GPIOE, &GPIO_InitStructure);
 
 	/* PE4,5,6输出 */
-	GPIO_ResetBits(GPIOE,GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6, GPIO_PIN_RESET);
 }
 
 
 static void DelayNOP(uint32_t count)
 {
-	while(count--) NOP();
+	while(count--)
+        __NOP();
 }
 
 static void DS1302_OUT(void)

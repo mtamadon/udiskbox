@@ -14,12 +14,12 @@
 /* 外部类型 -------------------------------------------------------------------*/
 typedef struct _CMD
 {
-  unsigned char ReceiveBuffer[32];
-	unsigned char SendBuffer[32];
-  unsigned char ReceivePoint;
-	unsigned char SendPoint;
-	unsigned char SendFlag;
-  unsigned char ReceiveFlag;
+    unsigned char ReceiveBuffer[32];
+    unsigned char SendBuffer[32];
+    unsigned char ReceivePoint;
+    unsigned char SendPoint;
+    unsigned char SendFlag;
+    unsigned char ReceiveFlag;
 }CMD;
 
 typedef struct _PICC

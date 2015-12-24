@@ -61,17 +61,52 @@ uint8_t USART1_Receive_Byte(void)
 }
 #endif
 
-USART_HandleTypeDef USART_Handle;
+USART_HandleTypeDef ConsoleUSART_Handle;
+USART_HandleTypeDef RFIDUSART_Handle;
+USART_HandleTypeDef LCDUSART_Handle;
+
+HAL_StatusTypeDef USART_SendByte(USART_HandleTypeDef *p_USARTHandle, uint8_t DATA)
+{
+    __HAL_LOCK((p_USARTHandle));
+    WRITE_REG((p_USARTHandle)->Instance->DR, ((DATA) & (uint8_t)0xFF));
+    __HAL_UNLOCK((p_USARTHandle));
+    return HAL_OK;
+}
+
 void DebugLogConsoleConfig(USART_TypeDef * USART_X)
 {
-    USART_Handle.Instance            = USART_X;
-    USART_Handle.Init.BaudRate       = 115200 ;
-    USART_Handle.Init.WordLength     = USART_WORDLENGTH_8B;
-    USART_Handle.Init.StopBits       = USART_STOPBITS_1;
-    USART_Handle.Init.Parity         = USART_PARITY_NONE;
-    USART_Handle.Init.Mode           = USART_MODE_RX | USART_MODE_TX;
-    HAL_USART_Init(&USART_Handle);
-    __HAL_USART_ENABLE(&USART_Handle);
+    ConsoleUSART_Handle.Instance            = USART_X;
+    ConsoleUSART_Handle.Init.BaudRate       = 115200 ;
+    ConsoleUSART_Handle.Init.WordLength     = USART_WORDLENGTH_8B;
+    ConsoleUSART_Handle.Init.StopBits       = USART_STOPBITS_1;
+    ConsoleUSART_Handle.Init.Parity         = USART_PARITY_NONE;
+    ConsoleUSART_Handle.Init.Mode           = USART_MODE_TX_RX;
+    HAL_USART_Init(&ConsoleUSART_Handle);
+    __HAL_USART_ENABLE(&ConsoleUSART_Handle);
+}
+
+void RFIDUSARTConfig(USART_TypeDef * USART_X)
+{
+    RFIDUSART_Handle.Instance            = USART_X;
+    RFIDUSART_Handle.Init.BaudRate       = 9600 ;
+    RFIDUSART_Handle.Init.WordLength     = USART_WORDLENGTH_8B;
+    RFIDUSART_Handle.Init.StopBits       = USART_STOPBITS_1;
+    RFIDUSART_Handle.Init.Parity         = USART_PARITY_NONE;
+    RFIDUSART_Handle.Init.Mode           = USART_MODE_TX_RX;
+    HAL_USART_Init(&RFIDUSART_Handle);
+    __HAL_USART_ENABLE(&RFIDUSART_Handle);
+}
+
+void LCDUSARTConfig(USART_TypeDef * USART_X)
+{
+    RFIDUSART_Handle.Instance            = USART_X;
+    RFIDUSART_Handle.Init.BaudRate       = 115200 ;
+    RFIDUSART_Handle.Init.WordLength     = USART_WORDLENGTH_8B;
+    RFIDUSART_Handle.Init.StopBits       = USART_STOPBITS_1;
+    RFIDUSART_Handle.Init.Parity         = USART_PARITY_NONE;
+    RFIDUSART_Handle.Init.Mode           = USART_MODE_TX_RX;
+    HAL_USART_Init(&RFIDUSART_Handle);
+    __HAL_USART_ENABLE(&RFIDUSART_Handle);
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -81,7 +116,7 @@ void DebugLogConsoleConfig(USART_TypeDef * USART_X)
  ** 作  　者: Dream
  ** 日　  期: 2011年6月20日
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-void Init_Usart(void)
+void Init_UsartGpio(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;					//定义一个GPIO结构体变量
 
@@ -143,83 +178,89 @@ void Usart_Configuration(USART_TypeDef * USART_X, uint32_t BaudRate)
 
 void USART1_IRQHandler()
 {
-    //uint8_t ReceiveDate;								//定义一个变量存放接收的数据
-    if(!(USART_GetITStatus(USART1,USART_IT_RXNE))); 	//读取接收中断标志位USART_IT_RXNE
-    //USART_FLAG_RXNE:接收数据寄存器非空标志位
-    //1：忙状态  0：空闲(没收到数据，等待。。。)
-    {
-        USART_ClearITPendingBit(USART1,USART_IT_RXNE);	//清楚中断标志位
-        // 		ReceiveDate=USART_ReceiveData(USART1);			//接收字符存入数组
-        // 		printf("%d",(char*)ReceiveDate);				//以十进制输出输入的值,从这里我们可以看到键盘上所有的键值对应的十进制数
-        // 														//比如输入"1"对应的输出49 、 输入"A" 对应的值为65
-        // 		printf("\n\r");									//换行置顶
-    }
+    /*
+     * //uint8_t ReceiveDate;								//定义一个变量存放接收的数据
+     * if(!(USART_GetITStatus(USART1,USART_IT_RXNE))); 	//读取接收中断标志位USART_IT_RXNE
+     * //USART_FLAG_RXNE:接收数据寄存器非空标志位
+     * //1：忙状态  0：空闲(没收到数据，等待。。。)
+     * {
+     *     USART_ClearITPendingBit(USART1,USART_IT_RXNE);	//清楚中断标志位
+     *     // 		ReceiveDate=USART_ReceiveData(USART1);			//接收字符存入数组
+     *     // 		printf("%d",(char*)ReceiveDate);				//以十进制输出输入的值,从这里我们可以看到键盘上所有的键值对应的十进制数
+     *     // 														//比如输入"1"对应的输出49 、 输入"A" 对应的值为65
+     *     // 		printf("\n\r");									//换行置顶
+     * }
+     */
+
+  HAL_USART_IRQHandler(&ConsoleUSART_Handle); //TODO: find the USART1_Handler
 }
 
-void USART2_IRQHandler(void)
-{
-    static unsigned char bTemp, flag=0;
-    static unsigned char sflag = 0;
-
-    /* 串口接收 */
-    if(USART_GetFlagStatus(USART2, USART_FLAG_RXNE) == SET)
-    {
-        /* 清串口中断标记 */
-        bTemp = USART_ReceiveData(USART2);
-        /* 上条命令处理完成才接收 */
-        if(Cmd.ReceiveFlag == 0)
-        {
-            /* 7F 标记，为 0 表示上一个数据不是7F */
-            if(flag == 0)
-            {
-                /* 上一个标记不是7F，这个是，打上标记 */
-                if(bTemp == 0x7F){flag = 1;}
-                /* 把值存进接收缓存 */
-                Cmd.ReceiveBuffer[Cmd.ReceivePoint++] = bTemp;
-            }
-            else
-            {
-                flag = 0;
-                /* 上一个是7F，这一个不是表示收到【命令头】 */
-                if(bTemp != 0x7F)
-                {
-                    Cmd.ReceivePoint = 0;
-                    Cmd.ReceiveBuffer[Cmd.ReceivePoint++] = bTemp;
-                }
-                /* 上一个是7F，这一个也是，则忽略当前的7F */
-            }
-            if(Cmd.ReceivePoint >= 32){Cmd.ReceivePoint = 0;}
-            /* 接收指针大于 2 个开始对比命令长度和接收指针，一致表示收到完整命令 */
-            if(Cmd.ReceivePoint > 2){if(Cmd.ReceivePoint == Cmd.ReceiveBuffer[0]+1){Cmd.ReceiveFlag = 1;}}
-        }
-    }
-    /* 发送 */
-    if(USART_GetFlagStatus(USART2, USART_FLAG_TC) == SET)
-    {
-        USART_ClearFlag(USART2, USART_FLAG_TC);
-        /* 发送指针不为0时继续发送 */
-        if(Cmd.SendPoint != 0)
-        {
-            /* 7F判断 */
-            if(sflag == 0)
-            {
-                Cmd.SendPoint--;
-                USART_SendData(USART2, Cmd.SendBuffer[Cmd.SendBuffer[0] - Cmd.SendPoint]);
-                if(Cmd.SendBuffer[Cmd.SendBuffer[0] - Cmd.SendPoint] == 0x7F){sflag = 1;}
-            }
-            else
-            {
-                sflag = 0;USART_SendData(USART2, 0x7F);
-            }
-        }
-        /* 发送指针为0时打上发送标记表示发送完成 */
-        else
-        {
-            Cmd.SendFlag = 0;
-        }
-    }
-    USART2->SR = 0;
-}
+/* //FIXME
+ *void USART2_IRQHandler(void)
+ *{
+ *    static unsigned char bTemp, flag=0;
+ *    static unsigned char sflag = 0;
+ *
+ *    [> 串口接收 <]
+ *    if(USART_GetFlagStatus(USART2, USART_FLAG_RXNE) == SET)
+ *    {
+ *        [> 清串口中断标记 <]
+ *        bTemp = USART_ReceiveData(USART2);
+ *        [> 上条命令处理完成才接收 <]
+ *        if(Cmd.ReceiveFlag == 0)
+ *        {
+ *            [> 7F 标记，为 0 表示上一个数据不是7F <]
+ *            if(flag == 0)
+ *            {
+ *                [> 上一个标记不是7F，这个是，打上标记 <]
+ *                if(bTemp == 0x7F){flag = 1;}
+ *                [> 把值存进接收缓存 <]
+ *                Cmd.ReceiveBuffer[Cmd.ReceivePoint++] = bTemp;
+ *            }
+ *            else
+ *            {
+ *                flag = 0;
+ *                [> 上一个是7F，这一个不是表示收到【命令头】 <]
+ *                if(bTemp != 0x7F)
+ *                {
+ *                    Cmd.ReceivePoint = 0;
+ *                    Cmd.ReceiveBuffer[Cmd.ReceivePoint++] = bTemp;
+ *                }
+ *                [> 上一个是7F，这一个也是，则忽略当前的7F <]
+ *            }
+ *            if(Cmd.ReceivePoint >= 32){Cmd.ReceivePoint = 0;}
+ *            [> 接收指针大于 2 个开始对比命令长度和接收指针，一致表示收到完整命令 <]
+ *            if(Cmd.ReceivePoint > 2){if(Cmd.ReceivePoint == Cmd.ReceiveBuffer[0]+1){Cmd.ReceiveFlag = 1;}}
+ *        }
+ *    }
+ *    [> 发送 <]
+ *    if(USART_GetFlagStatus(USART2, USART_FLAG_TC) == SET)
+ *    {
+ *        USART_ClearFlag(USART2, USART_FLAG_TC);
+ *        [> 发送指针不为0时继续发送 <]
+ *        if(Cmd.SendPoint != 0)
+ *        {
+ *            [> 7F判断 <]
+ *            if(sflag == 0)
+ *            {
+ *                Cmd.SendPoint--;
+ *                USART_SendData(USART2, Cmd.SendBuffer[Cmd.SendBuffer[0] - Cmd.SendPoint]);
+ *                if(Cmd.SendBuffer[Cmd.SendBuffer[0] - Cmd.SendPoint] == 0x7F){sflag = 1;}
+ *            }
+ *            else
+ *            {
+ *                sflag = 0;USART_SendData(USART2, 0x7F);
+ *            }
+ *        }
+ *        [> 发送指针为0时打上发送标记表示发送完成 <]
+ *        else
+ *        {
+ *            Cmd.SendFlag = 0;
+ *        }
+ *    }
+ *    USART2->SR = 0;
+ *}
+ */
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: Lcd_Display
@@ -230,37 +271,7 @@ void USART2_IRQHandler(void)
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 void Lcd_Display(char * buf1)
 {
-    uint8_t i=0;
-    while (1)
-    {
-        if (buf1[i]!=0)
-        {
-            USART_SendData(USART3, buf1[i]);
-            while(USART_GetFlagStatus(USART3, USART_FLAG_TXE) == RESET){}; //判断是否发送完毕
-            i++;
-        }
-        else return;
-    }
+    int length = strlen(buf1);
+    HAL_USART_Transmit(&LCDUSART_Handle, (unsigned char *)buf1, length, 5000);
 }
 
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- ** 函数名称: USART2_SendString
- ** 功能描述: USART2发送字符串
- ** 参数描述: 无
- ** 作  　者: Dream
- ** 日　  期: 2011年6月20日
- :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-void USART2_SendString(char * buf1)
-{
-    uint8_t i=0;
-    while (1)
-    {
-        if (buf1[i]!=0)
-        {
-            USART_SendData(USART2, buf1[i]);
-            while(USART_GetFlagStatus(USART2, USART_FLAG_TXE) == RESET){}; //判断是否发送完毕
-            i++;
-        }
-        else return;
-    }
-}

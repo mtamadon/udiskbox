@@ -76,6 +76,10 @@ int checkserial(unsigned char *filename,unsigned char *serialarraycheck,unsigned
 int writelog(unsigned char * filename,unsigned char * filecontent,unsigned char lencont,unsigned char sflag);
 int printallfile(unsigned char * filename );
 
+extern USART_HandleTypeDef ConsoleUSART_Handle;
+extern USART_HandleTypeDef RFIDUSART_Handle;
+extern USART_HandleTypeDef USART3_Handle;
+
 extern unsigned  int fill_tcp_data_p(unsigned char *buf,unsigned  int pos, const unsigned char *progmem_s);
 extern void SendTcp(unsigned int plen);
 // 全局变量定义区
@@ -112,6 +116,8 @@ extern unsigned char lenind;
 unsigned char gflag_send=0;
 DWORD send_count=0;
 
+void SystemClock_Config(void);
+
 int main(void)
 {
 
@@ -128,20 +134,15 @@ int main(void)
     int stread,stwrite=0;
     unsigned char strtmp[30]="";
 
-
-
     /////////////////////////////////////////////////////////////////////////////////////////////////
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-     ** 初始化区域
-     :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
     HAL_Init();
     /*Init_NVIC();     //中断向量表注册函数*/ //TODO: USART2 中断向量注册
     /*NVIC_Configuration(); //SDIO中断处理初始化*/
     Init_LED();      //各个外设引脚配置
-    Init_Usart();     //串口引脚配置
-    Usart_Configuration(USART1,115200); //串口1配置 设置波特率为115200
-    Usart_Configuration(USART2,9600); //串口2配置 设置波特率为115200
-    Usart_Configuration(USART3,115200); //串口3配置 设置波特率为115200
+    Init_UsartGpio();     //串口引脚配置
+    DebugLogConsoleConfig(USART1);
+    RFIDUSARTConfig(USART2);
+    LCDUSARTConfig(USART3);
     Delay_Ms(200);        //等待200ms确保屏幕启动
 
     Init_LCDSTRUCT();
@@ -318,6 +319,54 @@ int main(void)
 
 }
 
+/**
+  * @brief  System Clock Configuration
+  *         The system Clock is configured as follow :
+  *            System Clock source            = PLL (HSE)
+  *            SYSCLK(Hz)                     = 72000000
+  *            HCLK(Hz)                       = 72000000
+  *            AHB Prescaler                  = 1
+  *            APB1 Prescaler                 = 2
+  *            APB2 Prescaler                 = 1
+  *            HSE Frequency(Hz)              = 8000000
+  *            HSE PREDIV1                    = 1
+  *            PLLMUL                         = 9
+  *            Flash Latency(WS)              = 2
+  * @param  None
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_ClkInitTypeDef clkinitstruct = {0};
+  RCC_OscInitTypeDef oscinitstruct = {0};
+
+  /* Enable HSE Oscillator and activate PLL with HSE as source */
+  oscinitstruct.OscillatorType  = RCC_OSCILLATORTYPE_HSE;
+  oscinitstruct.HSEState        = RCC_HSE_ON;
+  oscinitstruct.HSEPredivValue  = RCC_HSE_PREDIV_DIV1;
+  oscinitstruct.PLL.PLLState    = RCC_PLL_ON;
+  oscinitstruct.PLL.PLLSource   = RCC_PLLSOURCE_HSE;
+  oscinitstruct.PLL.PLLMUL      = RCC_PLL_MUL9;
+  if (HAL_RCC_OscConfig(&oscinitstruct)!= HAL_OK)
+  {
+    /* Initialization Error */
+    while(1);
+  }
+
+  /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
+     clocks dividers */
+  clkinitstruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
+  clkinitstruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  clkinitstruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  clkinitstruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  clkinitstruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  if (HAL_RCC_ClockConfig(&clkinitstruct, FLASH_LATENCY_2)!= HAL_OK)
+  {
+    /* Initialization Error */
+    while(1);
+  }
+}
+
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: Time_Conv
  ** 功能描述: LED IO引脚配置
@@ -327,7 +376,6 @@ int main(void)
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 void Time_Conv(uint8_t * tt,unsigned char cnt,char * timestr)
 {
-
     timestr[0]='2';                //年
     timestr[1]='0';
     timestr[2]=(tt[0]>>4) + 0x30;
@@ -349,10 +397,6 @@ void Time_Conv(uint8_t * tt,unsigned char cnt,char * timestr)
     timestr[14]=(tt[4]>>4) + 0x30;  //分
     timestr[15]=(tt[4]&0x0f)+0x30;
     timestr[16]='\0';
-
-
-
-
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -381,37 +425,6 @@ void Init_LED()
     GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;     //配置端口速度为50M
     HAL_GPIO_Init(GPIOD, &GPIO_InitStructure);        //根据参数初始化GPIOD寄存器
 }
-
-
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- ** 函数名称: Init_NVIC
- ** 功能描述: 系统中断配置
- ** 参数描述：无
- ** 作  　者: Dream
- ** 日　  期: 2011年5月14日
- :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-/*
- *void Init_NVIC(void)
- *{
- *    NVIC_InitTypeDef NVIC_InitStructure;   //定义一个NVIC向量表结构体变量
- *
- *#ifdef  VECT_TAB_RAM         //向量表基地址选择
- *
- *    NVIC_SetVectorTable(NVIC_VectTab_RAM, 0x0);   //将0x20000000地址作为向量表基地址(RAM)
- *#else
- *
- *    NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0); //将0x08000000地址作为向量表基地址(FLASH)
- *#endif
- *
- *    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2); //设置中断组 为2
- *
- *    NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;   //配置串口2为中断源
- *    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;  //设置占先优先级为2
- *    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;     //设置副优先级为0
- *    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;      //使能串口1中断
- *    NVIC_Init(&NVIC_InitStructure);          //根据参数初始化中断寄存器
- *}
- */
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: Delay_Ms_Ms
@@ -481,7 +494,7 @@ void SendCommand(void)
     Cmd.SendFlag = 1;
     Cmd.SendBuffer[Cmd.SendBuffer[0]] = CheckSum(Cmd.SendBuffer, Cmd.SendBuffer[0]);
     Cmd.SendPoint = Cmd.SendBuffer[0] + 1;
-    USART_SendData(USART2, 0x7F);
+    USART_SendByte( &RFIDUSART_Handle, 0x7F);
 }
 
 /*******************************************************************************
@@ -922,10 +935,4 @@ int printallfile(unsigned char * filename )
 
 
 }
-
-
-
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-End:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D:-D
-:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 

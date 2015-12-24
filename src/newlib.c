@@ -13,7 +13,8 @@
 #endif
 
 extern uint32_t __get_MSP(void);
-extern USART_HandleTypeDef USART_Handle;
+extern USART_HandleTypeDef ConsoleUSART_Handle;
+#define USART_Handle ConsoleUSART_Handle
 extern uint64_t virtualTimer;
 
 #undef errno
@@ -159,10 +160,10 @@ int _write(int file, char *ptr, int len)
     switch (file)
     {
     case STDOUT_FILENO: /*stdout*/
-        HAL_UART_Transmit(&UART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+        HAL_USART_Transmit(&USART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
         break;
     case STDERR_FILENO: /* stderr */
-        HAL_UART_Transmit(&UART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+        HAL_USART_Transmit(&USART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
         break;
     default:
         errno = EBADF;
