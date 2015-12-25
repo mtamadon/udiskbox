@@ -23,11 +23,11 @@ _sys_exit(int x)
 //重定义fputc函数
 int fputc(int Data, FILE *f)
 {
-    while(!USART_GetFlagStatus(USART1,USART_FLAG_TXE));	  //USART_GetFlagStatus：得到发送状态位
+    while(!USART_GetFlagStatus(USART1,USART_FLAG_TXE));   //USART_GetFlagStatus：得到发送状态位
     //USART_FLAG_TXE:发送寄存器为空 1：为空；0：忙状态
-    USART_SendData(USART1,Data);						  //发送一个字符
+    USART_SendData(USART1,Data);        //发送一个字符
 
-    return Data;										  //返回一个值
+    return Data;            //返回一个值
 }
 #endif
 
@@ -41,9 +41,9 @@ int fputc(int Data, FILE *f)
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 void USART1_Send_Byte(uint16_t Data)
 {
-    while(!USART_GetFlagStatus(USART1,USART_FLAG_TXE));	  //USART_GetFlagStatus：得到发送状态位
+    while(!USART_GetFlagStatus(USART1,USART_FLAG_TXE));   //USART_GetFlagStatus：得到发送状态位
     //USART_FLAG_TXE:发送寄存器为空 1：为空；0：忙状态
-    USART_SendData(USART1,Data);						  //发送一个字符
+    USART_SendData(USART1,Data);        //发送一个字符
 }
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: USART1_Send_Byte
@@ -57,7 +57,7 @@ uint8_t USART1_Receive_Byte(void)
     while(!(USART_GetFlagStatus(USART1,USART_FLAG_RXNE))); //USART_GetFlagStatus：得到接收状态位
     //USART_FLAG_RXNE:接收数据寄存器非空标志位
     //1：忙状态  0：空闲(没收到数据，等待。。。)
-    return USART_ReceiveData(USART1);					   //接收一个字符
+    return USART_ReceiveData(USART1);        //接收一个字符
 }
 #endif
 
@@ -71,6 +71,58 @@ HAL_StatusTypeDef USART_SendByte(USART_HandleTypeDef *p_USARTHandle, uint8_t DAT
     WRITE_REG((p_USARTHandle)->Instance->DR, ((DATA) & (uint8_t)0xFF));
     __HAL_UNLOCK((p_USARTHandle));
     return HAL_OK;
+}
+
+void HAL_USART_MspInit(USART_HandleTypeDef *husart)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;
+    if(husart->Instance == USART1)
+    {
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        __HAL_RCC_AFIO_CLK_ENABLE();
+        __HAL_RCC_USART1_CLK_ENABLE();
+
+        GPIO_InitStructure.Pin = GPIO_PIN_9;
+        GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+        GPIO_InitStructure.Pin = GPIO_PIN_10;
+        GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
+    }
+
+    if(husart->Instance == USART2)
+    {
+        __HAL_RCC_GPIOA_CLK_ENABLE();
+        __HAL_RCC_USART2_CLK_ENABLE();
+        GPIO_InitStructure.Pin = GPIO_PIN_2|GPIO_PIN_9;
+        GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+        GPIO_InitStructure.Pin = GPIO_PIN_3|GPIO_PIN_10;
+        GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+        HAL_NVIC_SetPriority(USART2_IRQn, 2, 1);
+        HAL_NVIC_EnableIRQ(USART2_IRQn);
+    }
+
+    if(husart->Instance == USART3)
+    {
+        __HAL_RCC_GPIOB_CLK_ENABLE();
+        __HAL_RCC_USART3_CLK_ENABLE();
+
+        GPIO_InitStructure.Pin = GPIO_PIN_10;
+        GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+        GPIO_InitStructure.Pin = GPIO_PIN_11;
+        GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
+        HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
+    }
 }
 
 void DebugLogConsoleConfig(USART_TypeDef * USART_X)
@@ -118,7 +170,7 @@ void LCDUSARTConfig(USART_TypeDef * USART_X)
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 void Init_UsartGpio(void)
 {
-    GPIO_InitTypeDef GPIO_InitStructure;					//定义一个GPIO结构体变量
+    GPIO_InitTypeDef GPIO_InitStructure;     //定义一个GPIO结构体变量
 
     /*RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA ,ENABLE);*/
 
@@ -132,25 +184,25 @@ void Init_UsartGpio(void)
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_USART1_CLK_ENABLE();
     __HAL_RCC_USART2_CLK_ENABLE();
-    __HAL_RCC_USART3_CLK_ENABLE(); //使能各个端口时钟，重要！！！ //TODO: all pin enable
+    __HAL_RCC_USART3_CLK_ENABLE(); //使能各个端口时钟，重要！！！
 
     GPIO_InitStructure.Pin = GPIO_PIN_2|GPIO_PIN_9;
-    GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;	   		//复用功能输出开漏
-    GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;	   	//配置端口速度为50M
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);				   	//根据参数初始化GPIOA寄存器
+    GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;      //复用功能输出开漏
+    GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;     //配置端口速度为50M
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);        //根据参数初始化GPIOA寄存器
 
     GPIO_InitStructure.Pin = GPIO_PIN_3|GPIO_PIN_10;
-    GPIO_InitStructure.Mode = GPIO_MODE_INPUT;	//浮空输入(复位状态);
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);				   	//根据参数初始化GPIOA寄存器
+    GPIO_InitStructure.Mode = GPIO_MODE_INPUT; //浮空输入(复位状态);
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);        //根据参数初始化GPIOA寄存器
 
-    GPIO_InitStructure.Pin = GPIO_PIN_10; 				//配置串口接收端口挂接到10端口 USART3
-    GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;	   		//复用功能输出开漏
-    GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;	   	//配置端口速度为50M
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);				   	//根据参数初始化GPIOA寄存器
+    GPIO_InitStructure.Pin = GPIO_PIN_10;     //配置串口接收端口挂接到10端口 USART3
+    GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;      //复用功能输出开漏
+    GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;     //配置端口速度为50M
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);        //根据参数初始化GPIOA寄存器
 
     GPIO_InitStructure.Pin = GPIO_PIN_11;
-    GPIO_InitStructure.Mode = GPIO_MODE_INPUT;	//浮空输入(复位状态);
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);				   	//根据参数初始化GPIOA寄存器
+    GPIO_InitStructure.Mode = GPIO_MODE_INPUT; //浮空输入(复位状态);
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);        //根据参数初始化GPIOA寄存器
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -162,38 +214,26 @@ void Init_UsartGpio(void)
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 void Usart_Configuration(USART_TypeDef * USART_X, uint32_t BaudRate)
 {
-    USART_HandleTypeDef USART_HandleStructure;							    	//定义一个串口结构体
+    USART_HandleTypeDef USART_HandleStructure;            //定义一个串口结构体
 
     USART_HandleStructure.Instance            = USART_X;
-    USART_HandleStructure.Init.BaudRate       = BaudRate ;	  			//波特率115200
-    USART_HandleStructure.Init.WordLength     = USART_WORDLENGTH_8B; 	//传输过程中使用8位数据
-    USART_HandleStructure.Init.StopBits       = USART_STOPBITS_1;	 	//在帧结尾传输1位停止位
-    USART_HandleStructure.Init.Parity         = USART_PARITY_NONE;	 	//奇偶失能
+    USART_HandleStructure.Init.BaudRate       = BaudRate ;      //波特率115200
+    USART_HandleStructure.Init.WordLength     = USART_WORDLENGTH_8B;  //传输过程中使用8位数据
+    USART_HandleStructure.Init.StopBits       = USART_STOPBITS_1;   //在帧结尾传输1位停止位
+    USART_HandleStructure.Init.Parity         = USART_PARITY_NONE;   //奇偶失能
     USART_HandleStructure.Init.Mode           = USART_MODE_RX | USART_MODE_TX; //接收和发送模式
-    HAL_USART_Init(&USART_HandleStructure);								//根据参数初始化串口寄存器
+    HAL_USART_Init(&USART_HandleStructure);        //根据参数初始化串口寄存器
     /*USART_ITConfig(USART_X,USART_IT_RXNE,ENABLE);*/ //FIXME: 使能串口中断
-    /*USART_Cmd(USART_X, ENABLE);     					//使能串口外设*/
+    /*USART_Cmd(USART_X, ENABLE);          //使能串口外设*/
     __HAL_USART_ENABLE(&USART_HandleStructure);
 }
 
-void USART1_IRQHandler()
-{
-    /*
-     * //uint8_t ReceiveDate;								//定义一个变量存放接收的数据
-     * if(!(USART_GetITStatus(USART1,USART_IT_RXNE))); 	//读取接收中断标志位USART_IT_RXNE
-     * //USART_FLAG_RXNE:接收数据寄存器非空标志位
-     * //1：忙状态  0：空闲(没收到数据，等待。。。)
-     * {
-     *     USART_ClearITPendingBit(USART1,USART_IT_RXNE);	//清楚中断标志位
-     *     // 		ReceiveDate=USART_ReceiveData(USART1);			//接收字符存入数组
-     *     // 		printf("%d",(char*)ReceiveDate);				//以十进制输出输入的值,从这里我们可以看到键盘上所有的键值对应的十进制数
-     *     // 														//比如输入"1"对应的输出49 、 输入"A" 对应的值为65
-     *     // 		printf("\n\r");									//换行置顶
-     * }
-     */
-
-  HAL_USART_IRQHandler(&ConsoleUSART_Handle); //TODO: find the USART1_Handler
-}
+/*
+ *void USART1_IRQHandler()
+ *{
+ *  HAL_USART_IRQHandler(&ConsoleUSART_Handle); //TODO: find the USART1_Handler
+ *}
+ */
 
 /* //FIXME
  *void USART2_IRQHandler(void)
@@ -261,6 +301,7 @@ void USART1_IRQHandler()
  *    USART2->SR = 0;
  *}
  */
+
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: Lcd_Display

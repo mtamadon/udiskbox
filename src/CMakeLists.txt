@@ -1,5 +1,6 @@
 FIND_PACKAGE(CMSIS REQUIRED)
 FIND_PACKAGE(STM32HAL REQUIRED)
+
 SET(STORAGE_DRIVER SDCARD)
 FIND_PACKAGE(FATFS REQUIRED)
 
@@ -17,13 +18,11 @@ include_directories(./RFID)
 aux_source_directory(./RFID RFID_SRCS)
 include_directories(./Usart)
 aux_source_directory(./Usart USART_SRCS)
-message(STATUS "main srcs" ${MAIN_SRCS})
 
 list(REMOVE_ITEM MAIN_SRCS
     ./web_server.c
     ./ip_arp_udp_tcp.c
 )
-message(STATUS "main srcs" ${MAIN_SRCS})
 
 SET(PROJECT_SOURCES
     ${MAIN_SRCS}
@@ -44,3 +43,51 @@ ADD_EXECUTABLE(${CMAKE_PROJECT_NAME}
 
 STM32_SET_TARGET_PROPERTIES(${CMAKE_PROJECT_NAME})
 STM32_ADD_HEX_BIN_TARGETS(${CMAKE_PROJECT_NAME})
+
+IF(EXECUTABLE_OUTPUT_PATH)
+    SET(FLASH_SCRIPT_FILENAME "${EXECUTABLE_OUTPUT_PATH}/${CMAKE_PROJECT_NAME}_flash.tcl")
+    SET(BIN_FILENAME "${EXECUTABLE_OUTPUT_PATH}/${CMAKE_PROJECT_NAME}.bin")
+    SET(ELF_FILENAME "${EXECUTABLE_OUTPUT_PATH}/${CMAKE_PROJECT_NAME}")
+ELSE()
+    SET(FLASH_SCRIPT_FILENAME "${CMAKE_PROJECT_NAME}_flash.tcl")
+    SET(BIN_FILENAME "${CMAKE_PROJECT_NAME}.bin")
+    SET(ELF_FILENAME "${CMAKE_PROJECT_NAME}")
+ENDIF()
+
+#SET(PROGRAMMER jlink)
+SET(PROGRAMMER stlink-v2)
+
+SET(FLASH_SCRIPT 
+    "set proDir [pwd]\n"
+    "\n"
+    "source [find interface/${PROGRAMMER}.cfg]\n"
+    "source [find target/stm32f1x.cfg]\n"
+    "\n"
+    "init\n"
+    "#halt\n"
+    "\n"
+    "reset halt\n"
+    "\n"
+    "flash probe 0\n"
+    "stm32f1x mass_erase 0\n"
+    "flash write_bank 0 $proDir/${BIN_FILENAME} 0\n"
+    "reset run\n"
+    "\n"
+    "shutdown\n"
+)
+FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${FLASH_SCRIPT_FILENAME} ${FLASH_SCRIPT})
+
+ADD_CUSTOM_TARGET(PROGRAMCHIP
+    DEPENDS ${BIN_FILENAME}
+    COMMAND openocd -f ${FLASH_SCRIPT_FILENAME}
+)
+
+SET(DEBUG_COMMAND arm-none-eabi-gdb
+    ${ELF_FILENAME}
+    --eval-command=' target remote | openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg -c \"gdb_port pipe\" -c \"log_output openocd.log\"'
+    -x ${PROJECT_SOURCE_DIR}/run_gdb.conf)
+ADD_CUSTOM_TARGET(DEBUGONCHIP
+    DEPENDS ${BIN_FILENAME}
+    COMMAND ${DEBUG_COMMAND}
+)
+

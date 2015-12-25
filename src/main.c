@@ -25,6 +25,7 @@
 #include "ds1302.h"
 #include "rfidupan.h"
 #include "inttypes.h"
+#include "sd_board.h"
 
 #include "spi_enc28j60.h"
 #include "web_server.h"
@@ -59,7 +60,6 @@ char PcdRequest(unsigned char req_code,unsigned char *pTagType);
 void ncs(unsigned char cse);
 
 void Init_LED(void);
-void Init_NVIC(void);
 void Delay_Ms(uint16_t time);
 void Delay_Us(uint16_t time);
 
@@ -136,10 +136,7 @@ int main(void)
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     HAL_Init();
-    /*Init_NVIC();     //中断向量表注册函数*/ //TODO: USART2 中断向量注册
-    /*NVIC_Configuration(); //SDIO中断处理初始化*/
     Init_LED();      //各个外设引脚配置
-    Init_UsartGpio();     //串口引脚配置
     DebugLogConsoleConfig(USART1);
     RFIDUSARTConfig(USART2);
     LCDUSARTConfig(USART3);
@@ -365,6 +362,11 @@ void SystemClock_Config(void)
     /* Initialization Error */
     while(1);
   }
+}
+
+void HAL_MspInit(void)
+{
+    HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_2);
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
