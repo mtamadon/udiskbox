@@ -77,6 +77,21 @@ SET(FLASH_SCRIPT
 )
 FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${FLASH_SCRIPT_FILENAME} ${FLASH_SCRIPT})
 
+SET(GDB_CONF
+    "define prog\n"
+    "monitor reset halt\n"
+    "monitor flash probe 0\n"
+    "monitor stm32f1x mass_erase 0\n"
+    "monitor flash write_bank 0 ${BIN_FILENAME} 0\n"
+    "monitor reset halt\n"
+    "end\n"
+    "\n"
+    "define reset\n"
+    "monitor reset halt\n"
+    "end\n"
+    )
+FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/.gdbinit ${GDB_CONF})
+
 ADD_CUSTOM_TARGET(PROGRAMCHIP
     DEPENDS ${BIN_FILENAME}
     COMMAND openocd -f ${FLASH_SCRIPT_FILENAME}
@@ -84,8 +99,10 @@ ADD_CUSTOM_TARGET(PROGRAMCHIP
 
 SET(DEBUG_COMMAND arm-none-eabi-gdb
     ${ELF_FILENAME}
-    --eval-command=' target remote | openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg -c \"gdb_port pipe\" -c \"log_output openocd.log\"'
-    -x ${PROJECT_SOURCE_DIR}/run_gdb.conf)
+    --eval-command='target remote|openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg -c \"gdb_port pipe\" -c \"log_output openocd.log\"'
+    -x .gdbinit
+)
+message(STATUS ${DEBUG_COMMAND})
 ADD_CUSTOM_TARGET(DEBUGONCHIP
     DEPENDS ${BIN_FILENAME}
     COMMAND ${DEBUG_COMMAND}

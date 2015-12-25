@@ -14,7 +14,6 @@
 
 extern uint32_t __get_MSP(void);
 extern USART_HandleTypeDef ConsoleUSART_Handle;
-#define USART_Handle ConsoleUSART_Handle
 extern uint64_t virtualTimer;
 
 #undef errno
@@ -124,7 +123,7 @@ int _read(int file, char *ptr, int len)
     switch (file)
     {
     case STDIN_FILENO:
-        HAL_USART_Receive(&USART_Handle, (uint8_t *)ptr, 1, HAL_MAX_DELAY);
+        HAL_USART_Receive(&ConsoleUSART_Handle, (uint8_t *)ptr, 1, HAL_MAX_DELAY);
         return 1;
     default:
         errno = EBADF;
@@ -160,10 +159,10 @@ int _write(int file, char *ptr, int len)
     switch (file)
     {
     case STDOUT_FILENO: /*stdout*/
-        HAL_USART_Transmit(&USART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+        HAL_USART_Transmit(&ConsoleUSART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
         break;
     case STDERR_FILENO: /* stderr */
-        HAL_USART_Transmit(&USART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+        HAL_USART_Transmit(&ConsoleUSART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
         break;
     default:
         errno = EBADF;

@@ -31,35 +31,6 @@ int fputc(int Data, FILE *f)
 }
 #endif
 
-#if 0
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- ** 函数名称: USART1_Send_Byte
- ** 功能描述: 串口发送一个字符串
- ** 参数描述：Data 要发送的数据
- ** 作  　者: Dream
- ** 日　  期: 2011年6月20日
- :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-void USART1_Send_Byte(uint16_t Data)
-{
-    while(!USART_GetFlagStatus(USART1,USART_FLAG_TXE));   //USART_GetFlagStatus：得到发送状态位
-    //USART_FLAG_TXE:发送寄存器为空 1：为空；0：忙状态
-    USART_SendData(USART1,Data);        //发送一个字符
-}
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- ** 函数名称: USART1_Send_Byte
- ** 功能描述: 串口发送一个字符串
- ** 参数描述：Data 要发送的数据
- ** 作  　者: Dream
- ** 日　  期: 2011年6月20日
- :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-uint8_t USART1_Receive_Byte(void)
-{
-    while(!(USART_GetFlagStatus(USART1,USART_FLAG_RXNE))); //USART_GetFlagStatus：得到接收状态位
-    //USART_FLAG_RXNE:接收数据寄存器非空标志位
-    //1：忙状态  0：空闲(没收到数据，等待。。。)
-    return USART_ReceiveData(USART1);        //接收一个字符
-}
-#endif
 
 USART_HandleTypeDef ConsoleUSART_Handle;
 USART_HandleTypeDef RFIDUSART_Handle;

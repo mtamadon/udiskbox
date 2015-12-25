@@ -120,10 +120,7 @@ void SystemClock_Config(void);
 
 int main(void)
 {
-
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-     ** 变量定义
-     :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    char hello[14] = "Hello World!\r\n";
 
     uint8_t tt[7];
     char rfid_status;
@@ -146,6 +143,7 @@ int main(void)
     // LCDUpdate('a');         //LCD显示
     //LCDUpdate('n');
     printf("start..\n\t");
+    HAL_USART_Transmit(&ConsoleUSART_Handle, (uint8_t*)hello, 13, 5000);
 
     Cmd.SendFlag = 0;       //初始化RFID标志位
     Cmd.ReceiveFlag = 0;
@@ -313,7 +311,6 @@ int main(void)
         }
         LCDUpdate('a');
     }
-
 }
 
 /**
