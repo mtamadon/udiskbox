@@ -57,7 +57,7 @@ ENDIF()
 #SET(PROGRAMMER jlink)
 SET(PROGRAMMER stlink-v2)
 
-SET(FLASH_SCRIPT 
+SET(FLASH_SCRIPT
     "set proDir [pwd]\n"
     "\n"
     "source [find interface/${PROGRAMMER}.cfg]\n"
@@ -84,27 +84,30 @@ SET(GDB_CONF
     "monitor stm32f1x mass_erase 0\n"
     "monitor flash write_bank 0 ${BIN_FILENAME} 0\n"
     "monitor reset halt\n"
+    "load ${ELF_FILENAME}\n"
+    "delete\n"
+    "b main\n"
     "end\n"
     "\n"
     "define reset\n"
     "monitor reset halt\n"
     "end\n"
+    "\n"
+    "define connect_debugger\n"
+    "target remote|openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg -c \"gdb_port pipe\" -c \"log_output openocd.log\"\n"
+    "end\n"
+    "\n"
+    "connect_debugger\n"
     )
-FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/.gdbinit ${GDB_CONF})
+FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/gdbinit ${GDB_CONF})
 
 ADD_CUSTOM_TARGET(PROGRAMCHIP
     DEPENDS ${BIN_FILENAME}
-    COMMAND openocd -f ${FLASH_SCRIPT_FILENAME}
+    COMMAND openocd;-f;${FLASH_SCRIPT_FILENAME}
 )
 
-SET(DEBUG_COMMAND arm-none-eabi-gdb
-    ${ELF_FILENAME}
-    --eval-command='target remote|openocd -f interface/stlink-v2.cfg -f target/stm32f1x.cfg -c \"gdb_port pipe\" -c \"log_output openocd.log\"'
-    -x .gdbinit
-)
-message(STATUS ${DEBUG_COMMAND})
 ADD_CUSTOM_TARGET(DEBUGONCHIP
     DEPENDS ${BIN_FILENAME}
-    COMMAND ${DEBUG_COMMAND}
+    COMMAND arm-none-eabi-gdb;-q;${ELF_FILENAME};-x;gdbinit
 )
 

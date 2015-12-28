@@ -133,6 +133,7 @@ int main(void)
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     HAL_Init();
+    SystemClock_Config();
     Init_LED();      //各个外设引脚配置
     DebugLogConsoleConfig(USART1);
     RFIDUSARTConfig(USART2);
@@ -140,7 +141,7 @@ int main(void)
     Delay_Ms(200);        //等待200ms确保屏幕启动
 
     Init_LCDSTRUCT();
-    // LCDUpdate('a');         //LCD显示
+    LCDUpdate('a');         //LCD显示
     //LCDUpdate('n');
     printf("start..\n\t");
     HAL_USART_Transmit(&ConsoleUSART_Handle, (uint8_t*)hello, 13, 5000);
@@ -552,74 +553,99 @@ void LCDUpdate(char stype)
     char Temperature_Array[64];
     char TimeNow_Array[64];
 
-    switch(stype)
-    {
-
+    switch(stype) {
         case 'a':
             {
+                strcpy(Name_Array,"DS16(100,24,'");
+                strcat(Name_Array,LCDSTRUCT.Name);
+                strcat(Name_Array,"',4);");
 
-                strcpy(Name_Array,"DS16(100,24,'");strcat(Name_Array,LCDSTRUCT.Name);strcat(Name_Array,"',4);");
-                strcpy(UserID_Array,"DS16(100,48,'");strcat(UserID_Array,LCDSTRUCT.UserID);strcat(UserID_Array,"',4);");
-                strcpy(PhoneNum_Array,"DS16(100,72,'");strcat(PhoneNum_Array,LCDSTRUCT.PhoneNum);strcat(PhoneNum_Array,"',4);");
-                strcpy(UdiskInfo_Array,"DS16(80,96,'");strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);strcat(UdiskInfo_Array,"',4);");
-                strcpy(UdiskInfo_Array2,"DS16(200,96,'");strcat(UdiskInfo_Array2,LCDSTRUCT.UdiskInfo2);strcat(UdiskInfo_Array2,"',4);");
-                strcpy(UdiskState_Array,"DS16(100,120,'");strcat(UdiskState_Array,LCDSTRUCT.UdiskState);strcat(UdiskState_Array,"',4);");
-                strcpy(Temperature_Array,"DS16(100,144,'");strcat(Temperature_Array,LCDSTRUCT.Temperature);strcat(Temperature_Array,"',4);");
-                strcpy(TimeNow_Array,"DS16(100,168,'");strcat(TimeNow_Array,LCDSTRUCT.TimeNow);strcat(TimeNow_Array,"',4);");
+                strcpy(UserID_Array,"DS16(100,48,'");
+                strcat(UserID_Array,LCDSTRUCT.UserID);
+                strcat(UserID_Array,"',4);");
+
+                strcpy(PhoneNum_Array,"DS16(100,72,'");
+                strcat(PhoneNum_Array,LCDSTRUCT.PhoneNum);
+                strcat(PhoneNum_Array,"',4);");
+
+                strcpy(UdiskInfo_Array,"DS16(80,96,'");
+                strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);
+                strcat(UdiskInfo_Array,"',4);");
+
+                strcpy(UdiskInfo_Array2,"DS16(200,96,'");
+                strcat(UdiskInfo_Array2,LCDSTRUCT.UdiskInfo2);
+                strcat(UdiskInfo_Array2,"',4);");
+
+                strcpy(UdiskState_Array,"DS16(100,120,'");
+                strcat(UdiskState_Array,LCDSTRUCT.UdiskState);
+                strcat(UdiskState_Array,"',4);");
+
+                strcpy(Temperature_Array,"DS16(100,144,'");
+                strcat(Temperature_Array,LCDSTRUCT.Temperature);
+                strcat(Temperature_Array,"',4);");
+
+                strcpy(TimeNow_Array,"DS16(100,168,'");
+                strcat(TimeNow_Array,LCDSTRUCT.TimeNow);
+                strcat(TimeNow_Array,"',4);");
 
                 Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
                 Lcd_Display("CLS(0);DS16(100,0,'SITP U盘管理系统',16);");
-                Lcd_Display("DS16(4,24,'姓名：',15);");      Lcd_Display(Name_Array);
-                Lcd_Display("DS16(4,48,'卡号：',4);");        Lcd_Display(UserID_Array);
-                Lcd_Display("DS16(4,72,'联系电话：',15);");  Lcd_Display(PhoneNum_Array);
-                Lcd_Display("DS16(4,96,'U盘信息：',4);");    Lcd_Display(UdiskInfo_Array);Lcd_Display(UdiskInfo_Array2);
-                Lcd_Display("DS16(4,120,'借/还状态：',4);");   Lcd_Display(UdiskState_Array);
-                Lcd_Display("DS16(4,144,'室内温度：',15);");   Lcd_Display(Temperature_Array);
-                Lcd_Display("DS16(4,168,'日期/时间：',15);");  Lcd_Display(TimeNow_Array);
-            }break;
+                Lcd_Display("DS16(4,24,'姓名：',15);");
+                Lcd_Display(Name_Array);
+                Lcd_Display("DS16(4,48,'卡号：',4);");
+                Lcd_Display(UserID_Array);
+                Lcd_Display("DS16(4,72,'联系电话：',15);");
+                Lcd_Display(PhoneNum_Array);
+                Lcd_Display("DS16(4,96,'U盘信息：',4);");
+                Lcd_Display(UdiskInfo_Array);Lcd_Display(UdiskInfo_Array2);
+                Lcd_Display("DS16(4,120,'借/还状态：',4);");
+                Lcd_Display(UdiskState_Array);
+                Lcd_Display("DS16(4,144,'室内温度：',15);");
+                Lcd_Display(Temperature_Array);
+                Lcd_Display("DS16(4,168,'日期/时间：',15);");
+                Lcd_Display(TimeNow_Array);
+            } break;
         case 'n':
             {
-                strcpy(Name_Array,"DS16(100,24,'");strcat(Name_Array,LCDSTRUCT.Name);strcat(Name_Array,"',4);");
-
+                strcpy(Name_Array,"DS16(100,24,'");
+                strcat(Name_Array,LCDSTRUCT.Name);
+                strcat(Name_Array,"',4);");
                 Lcd_Display("CLS(0);DS16(100,0,'SITP U盘管理系统',16);");
                 Lcd_Display(Name_Array);
             }break;
         case 'u':
-            {
-                strcpy(UserID_Array,"DS16(100,48,'");strcat(UserID_Array,LCDSTRUCT.UserID);strcat(UserID_Array,"',4);");Lcd_Display(UserID_Array);
-                /*LED2=~LED2;*/ //FIXME: GPIOD Pin 13 invert
-            }break;
+                  {
+                      strcpy(UserID_Array,"DS16(100,48,'");
+                      strcat(UserID_Array,LCDSTRUCT.UserID);
+                      strcat(UserID_Array,"',4);");
+                      Lcd_Display(UserID_Array);
+                      HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
+                  }break;
         case 'p':
-            {
-                strcpy(PhoneNum_Array,"DS16(100,72,'");strcat(PhoneNum_Array,LCDSTRUCT.PhoneNum);strcat(PhoneNum_Array,"',4);");Lcd_Display(PhoneNum_Array);
-            }break;
+                  {
+                      strcpy(PhoneNum_Array,"DS16(100,72,'");strcat(PhoneNum_Array,LCDSTRUCT.PhoneNum);strcat(PhoneNum_Array,"',4);");Lcd_Display(PhoneNum_Array);
+                  }break;
         case 'i':
-            {
-                strcpy(UdiskInfo_Array,"DS16(100,96,'");strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);strcat(UdiskInfo_Array,"',4);");Lcd_Display(UdiskInfo_Array);
-            }break;
+                  {
+                      strcpy(UdiskInfo_Array,"DS16(100,96,'");strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);strcat(UdiskInfo_Array,"',4);");Lcd_Display(UdiskInfo_Array);
+                  }break;
         case 's':
-            {
-                strcpy(UdiskState_Array,"DS16(100,120,'");strcat(UdiskState_Array,LCDSTRUCT.UdiskState);strcat(UdiskState_Array,"',4);");Lcd_Display(UdiskState_Array);
-            }break;
+                  {
+                      strcpy(UdiskState_Array,"DS16(100,120,'");strcat(UdiskState_Array,LCDSTRUCT.UdiskState);strcat(UdiskState_Array,"',4);");Lcd_Display(UdiskState_Array);
+                  }break;
         case 't':
-            {
-                strcpy(Temperature_Array,"DS16(100,144,'");strcat(Temperature_Array,LCDSTRUCT.Temperature);strcat(Temperature_Array,"',4);");Lcd_Display(Temperature_Array);
-            }break;
-        case 'd':
-            {
-                strcpy(TimeNow_Array,"DS16(100,168,'");strcat(TimeNow_Array,LCDSTRUCT.TimeNow);strcat(TimeNow_Array,"',4);");Lcd_Display(TimeNow_Array);
-            }break;
+                  {
+                      strcpy(Temperature_Array,"DS16(100,144,'");strcat(Temperature_Array,LCDSTRUCT.Temperature);strcat(Temperature_Array,"',4);");Lcd_Display(Temperature_Array);
+                  }break;
+        case 'd': {
+                      strcpy(TimeNow_Array,"DS16(100,168,'");strcat(TimeNow_Array,LCDSTRUCT.TimeNow);strcat(TimeNow_Array,"',4);");Lcd_Display(TimeNow_Array);
+                  }break;
         case 'e':
-            {
-                Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
-                Lcd_Display("CLS(0);DS16(100,0,'SITP U盘管理系统',16);");
-
-            }break;
+                  {
+                      Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
+                      Lcd_Display("CLS(0);DS16(100,0,'SITP U盘管理系统',16);");
+                  }break;
     }
-
-
-
-
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -642,9 +668,6 @@ void uchar2str(unsigned char i,unsigned char * strname)
     if(k>0) {strname[m++]=k+0x30;}
 
     strname[m]='\0';
-
-
-
 }
 
 
@@ -801,6 +824,7 @@ int checkserial(unsigned char * filename,unsigned char * serialarraycheck,unsign
     return 0;
 
 }
+
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: writelog
  ** 功能描述: 写入log日志文件

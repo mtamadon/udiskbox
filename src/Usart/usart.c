@@ -35,6 +35,7 @@ int fputc(int Data, FILE *f)
 USART_HandleTypeDef ConsoleUSART_Handle;
 USART_HandleTypeDef RFIDUSART_Handle;
 USART_HandleTypeDef LCDUSART_Handle;
+#define RFIDUSART_IRQHandler USART2_IRQHandler
 
 HAL_StatusTypeDef USART_SendByte(USART_HandleTypeDef *p_USARTHandle, uint8_t DATA)
 {
@@ -47,15 +48,16 @@ HAL_StatusTypeDef USART_SendByte(USART_HandleTypeDef *p_USARTHandle, uint8_t DAT
 void HAL_USART_MspInit(USART_HandleTypeDef *husart)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_InitStructure.Pull = GPIO_PULLUP;
+    GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
+
     if(husart->Instance == USART1)
     {
         __HAL_RCC_GPIOA_CLK_ENABLE();
-        __HAL_RCC_AFIO_CLK_ENABLE();
         __HAL_RCC_USART1_CLK_ENABLE();
 
         GPIO_InitStructure.Pin = GPIO_PIN_9;
         GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;
-        GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
 
         GPIO_InitStructure.Pin = GPIO_PIN_10;
@@ -67,12 +69,11 @@ void HAL_USART_MspInit(USART_HandleTypeDef *husart)
     {
         __HAL_RCC_GPIOA_CLK_ENABLE();
         __HAL_RCC_USART2_CLK_ENABLE();
-        GPIO_InitStructure.Pin = GPIO_PIN_2|GPIO_PIN_9;
+        GPIO_InitStructure.Pin = GPIO_PIN_2;
         GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;
-        GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-        GPIO_InitStructure.Pin = GPIO_PIN_3|GPIO_PIN_10;
+        GPIO_InitStructure.Pin = GPIO_PIN_3;
         GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
         HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
 
@@ -87,7 +88,6 @@ void HAL_USART_MspInit(USART_HandleTypeDef *husart)
 
         GPIO_InitStructure.Pin = GPIO_PIN_10;
         GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;
-        GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
         HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);
 
         GPIO_InitStructure.Pin = GPIO_PIN_11;
@@ -105,7 +105,6 @@ void DebugLogConsoleConfig(USART_TypeDef * USART_X)
     ConsoleUSART_Handle.Init.Parity         = USART_PARITY_NONE;
     ConsoleUSART_Handle.Init.Mode           = USART_MODE_TX_RX;
     HAL_USART_Init(&ConsoleUSART_Handle);
-    __HAL_USART_ENABLE(&ConsoleUSART_Handle);
 }
 
 void RFIDUSARTConfig(USART_TypeDef * USART_X)
@@ -122,14 +121,14 @@ void RFIDUSARTConfig(USART_TypeDef * USART_X)
 
 void LCDUSARTConfig(USART_TypeDef * USART_X)
 {
-    RFIDUSART_Handle.Instance            = USART_X;
-    RFIDUSART_Handle.Init.BaudRate       = 115200 ;
-    RFIDUSART_Handle.Init.WordLength     = USART_WORDLENGTH_8B;
-    RFIDUSART_Handle.Init.StopBits       = USART_STOPBITS_1;
-    RFIDUSART_Handle.Init.Parity         = USART_PARITY_NONE;
-    RFIDUSART_Handle.Init.Mode           = USART_MODE_TX_RX;
-    HAL_USART_Init(&RFIDUSART_Handle);
-    __HAL_USART_ENABLE(&RFIDUSART_Handle);
+    LCDUSART_Handle.Instance            = USART_X;
+    LCDUSART_Handle.Init.BaudRate       = 115200 ;
+    LCDUSART_Handle.Init.WordLength     = USART_WORDLENGTH_8B;
+    LCDUSART_Handle.Init.StopBits       = USART_STOPBITS_1;
+    LCDUSART_Handle.Init.Parity         = USART_PARITY_NONE;
+    LCDUSART_Handle.Init.Mode           = USART_MODE_TX_RX;
+    HAL_USART_Init(&LCDUSART_Handle);
+    __HAL_USART_ENABLE(&LCDUSART_Handle);
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -206,9 +205,14 @@ void Usart_Configuration(USART_TypeDef * USART_X, uint32_t BaudRate)
  *}
  */
 
-/* //FIXME
- *void USART2_IRQHandler(void)
+ //FIXME
+/*
+ *void RFIDUSART_IRQHandler(void)
  *{
+ *  [>uint32_t tmp_flag = 0, tmp_it_source = 0;<]
+ *  [>tmp_flag = __HAL_USART_GET_FLAG(husart, USART_FLAG_RXNE);<]
+ *  [>tmp_it_source = __HAL_USART_GET_IT_SOURCE(husart, USART_IT_RXNE);<]
+ *  [>if((tmp_flag != RESET) && (tmp_it_source != RESET))<]
  *    static unsigned char bTemp, flag=0;
  *    static unsigned char sflag = 0;
  *
@@ -273,7 +277,6 @@ void Usart_Configuration(USART_TypeDef * USART_X, uint32_t BaudRate)
  *}
  */
 
-
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: Lcd_Display
  ** 功能描述: LCD显示成像
@@ -284,6 +287,6 @@ void Usart_Configuration(USART_TypeDef * USART_X, uint32_t BaudRate)
 void Lcd_Display(char * buf1)
 {
     int length = strlen(buf1);
-    HAL_USART_Transmit(&LCDUSART_Handle, (unsigned char *)buf1, length, 5000);
+    HAL_StatusTypeDef s = HAL_USART_Transmit(&LCDUSART_Handle, (unsigned char *)buf1, length, 5000);
 }
 
