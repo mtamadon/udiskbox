@@ -1,7 +1,7 @@
 #include "rfidupan.h"
 /*#include "stm32f10x_gpio.h"*/
 /*#include "stm32f10x_rcc.h"*/
-#include <stm32f1xx_hal_conf.h>
+#include <stm32f1xx_hal.h>
 //#include <string.h>
 
 #define MAXRLEN 18

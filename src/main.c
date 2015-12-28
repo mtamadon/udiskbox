@@ -52,6 +52,7 @@ DISSTRUCT LCDSTRUCT;
 
 //函数申明
 
+static void Error_Handler(void);
 void LCDUpdate(char stype);    //LCD显示
 void Init_LCDSTRUCT(void);
 
@@ -141,7 +142,7 @@ int main(void)
     Delay_Ms(200);        //等待200ms确保屏幕启动
 
     Init_LCDSTRUCT();
-    LCDUpdate('a');         //LCD显示
+    /*LCDUpdate('a');         //LCD显示*/
     //LCDUpdate('n');
     printf("start..\n\t");
     HAL_USART_Transmit(&ConsoleUSART_Handle, (uint8_t*)hello, 13, 5000);
@@ -155,14 +156,21 @@ int main(void)
     Init_RfidUpan_GPIO();
 
     /* ENC28J60 SPI 接口初始化 */
-    SPI_Enc28j60_Init();//函数初始化
+    /*SPI_Enc28j60_Init();//函数初始化*/
     /*SetIpMac();*/ //TODO
     gflag_send=0;       //变量初始化
     send_count=0;
     /* 挂载文件系统*/
 
-    FATFS_LinkDriver(&SD_Driver, SDPath); //TODO: Error Handle
-    f_mount(&fs, (TCHAR const*)SDPath, 0); //TODO: Error Handle
+    if(FATFS_LinkDriver(&SD_Driver, SDPath) == 0)
+    {
+        /*##-2- Register the file system object to the FatFs module ##############*/
+        if(f_mount(&fs, (TCHAR const*)SDPath, 0) != FR_OK)
+        {
+            /* FatFs Initialization Error */
+            Error_Handler();
+        }
+    }
 
     LCDShowUpanState(upanfilename);
 
@@ -241,7 +249,7 @@ int main(void)
             ncs(2);//片选
             Init_RfidUpan();
             rfid_status = PcdRequest(PICC_REQALL,g_ucTempbuf);//扫描卡
-            printf("%02x  ",rfid_status);
+            /*printf("%02x  ",rfid_status);*/ //TODO
             if(rfid_status==0)
             {
                 rfid_status = PcdAnticoll(g_ucTempbuf);//防冲撞
@@ -437,8 +445,10 @@ void Delay_Ms(uint16_t time)  //延时函数
 {
     uint16_t i,j;
     for(i=0;i<time;i++)
-        for(j=0;j<10260;j++);
+        for(j=0;j<10260;j++)
+            __NOP();
 }
+
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: Delay_Ms_Us
  ** 功能描述: 延时1us (可通过仿真来判断他的准确度)
@@ -450,7 +460,8 @@ void Delay_Us(uint16_t time)  //延时函数
 {
     uint16_t i,j;
     for(i=0;i<time;i++)
-        for(j=0;j<9;j++);
+        for(j=0;j<9;j++)
+            __NOP();
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -477,7 +488,10 @@ unsigned char CheckSum(unsigned char *dat, unsigned char num)
 {
     unsigned char bTemp = 0, i;
 
-    for(i = 0; i < num; i ++){bTemp ^= dat[i];}
+    for(i = 0; i < num; i ++)
+    {
+        bTemp ^= dat[i];
+    }
     return bTemp;
 }
 
@@ -553,7 +567,8 @@ void LCDUpdate(char stype)
     char Temperature_Array[64];
     char TimeNow_Array[64];
 
-    switch(stype) {
+    switch(stype)
+    {
         case 'a':
             {
                 strcpy(Name_Array,"DS16(100,24,'");
@@ -614,37 +629,53 @@ void LCDUpdate(char stype)
                 Lcd_Display(Name_Array);
             }break;
         case 'u':
-                  {
-                      strcpy(UserID_Array,"DS16(100,48,'");
-                      strcat(UserID_Array,LCDSTRUCT.UserID);
-                      strcat(UserID_Array,"',4);");
-                      Lcd_Display(UserID_Array);
-                      HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
-                  }break;
+            {
+                strcpy(UserID_Array,"DS16(100,48,'");
+                strcat(UserID_Array,LCDSTRUCT.UserID);
+                strcat(UserID_Array,"',4);");
+                Lcd_Display(UserID_Array);
+                HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
+            }break;
         case 'p':
-                  {
-                      strcpy(PhoneNum_Array,"DS16(100,72,'");strcat(PhoneNum_Array,LCDSTRUCT.PhoneNum);strcat(PhoneNum_Array,"',4);");Lcd_Display(PhoneNum_Array);
-                  }break;
+            {
+                strcpy(PhoneNum_Array,"DS16(100,72,'");
+                strcat(PhoneNum_Array,LCDSTRUCT.PhoneNum);
+                strcat(PhoneNum_Array,"',4);");
+                Lcd_Display(PhoneNum_Array);
+            }break;
         case 'i':
-                  {
-                      strcpy(UdiskInfo_Array,"DS16(100,96,'");strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);strcat(UdiskInfo_Array,"',4);");Lcd_Display(UdiskInfo_Array);
-                  }break;
+            {
+                strcpy(UdiskInfo_Array,"DS16(100,96,'");
+                strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);
+                strcat(UdiskInfo_Array,"',4);");
+                Lcd_Display(UdiskInfo_Array);
+            }break;
         case 's':
-                  {
-                      strcpy(UdiskState_Array,"DS16(100,120,'");strcat(UdiskState_Array,LCDSTRUCT.UdiskState);strcat(UdiskState_Array,"',4);");Lcd_Display(UdiskState_Array);
-                  }break;
+            {
+                strcpy(UdiskState_Array,"DS16(100,120,'");
+                strcat(UdiskState_Array,LCDSTRUCT.UdiskState);
+                strcat(UdiskState_Array,"',4);");
+                Lcd_Display(UdiskState_Array);
+            }break;
         case 't':
-                  {
-                      strcpy(Temperature_Array,"DS16(100,144,'");strcat(Temperature_Array,LCDSTRUCT.Temperature);strcat(Temperature_Array,"',4);");Lcd_Display(Temperature_Array);
-                  }break;
-        case 'd': {
-                      strcpy(TimeNow_Array,"DS16(100,168,'");strcat(TimeNow_Array,LCDSTRUCT.TimeNow);strcat(TimeNow_Array,"',4);");Lcd_Display(TimeNow_Array);
-                  }break;
+            {
+                strcpy(Temperature_Array,"DS16(100,144,'");
+                strcat(Temperature_Array,LCDSTRUCT.Temperature);
+                strcat(Temperature_Array,"',4);");
+                Lcd_Display(Temperature_Array);
+            }break;
+        case 'd':
+            {
+                strcpy(TimeNow_Array,"DS16(100,168,'");
+                strcat(TimeNow_Array,LCDSTRUCT.TimeNow);
+                strcat(TimeNow_Array,"',4);");
+                Lcd_Display(TimeNow_Array);
+            }break;
         case 'e':
-                  {
-                      Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
-                      Lcd_Display("CLS(0);DS16(100,0,'SITP U盘管理系统',16);");
-                  }break;
+            {
+                Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
+                Lcd_Display("CLS(0);DS16(100,0,'SITP U盘管理系统',16);");
+            }break;
     }
 }
 
@@ -669,7 +700,6 @@ void uchar2str(unsigned char i,unsigned char * strname)
 
     strname[m]='\0';
 }
-
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: LCDShowUpanState
@@ -700,10 +730,10 @@ int LCDShowUpanState(unsigned char * filename)
     Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
     Lcd_Display("CLS(0);DS16(100,0,'SITP U盘管理系统',16);");
 
-    res=f_open(&fdrd,filename, FA_OPEN_EXISTING | FA_READ);
+    res=f_open(&fdrd, filename, FA_OPEN_EXISTING | FA_READ);
     if(res)
     {
-        printf("not open");
+        /*printf("not open"); //TODO*/
         return -1;
     }
     for(;;)
@@ -718,7 +748,7 @@ int LCDShowUpanState(unsigned char * filename)
                 memcpy(strtmp+5,space,2);
                 memcpy(strtmp+7,norm,4);
                 strtmp[11]='\0';
-                printf(strtmp);printf("\r\n");
+                /*printf(strtmp);printf("\r\n"); //TODO*/
 
             }
             else if(filetemp[18]=='1')
@@ -734,22 +764,27 @@ int LCDShowUpanState(unsigned char * filename)
                 memcpy(strtmp+11,space,2);
                 strtmp[13]='\0';
                 strcat(strtmp,namearray);
-                printf(strtmp);printf("\r\n");
+                /*printf(strtmp);printf("\r\n");*/ //TODO
 
             }
             i++;
             j=i*24;
             uchar2str(j,pos);
-            strcpy(Uinfolist,"DS16(100,");printf(Uinfolist);
-            strcat(Uinfolist,pos);printf(Uinfolist);
-            strcat(Uinfolist,",'");printf(Uinfolist);
-            strcat(Uinfolist,strtmp);printf(Uinfolist);
-            strcat(Uinfolist,"',16);");printf(Uinfolist);printf("\r\n");
+            strcpy(Uinfolist,"DS16(100,");
+            /*printf(Uinfolist);*/
+            strcat(Uinfolist,pos);
+            /*printf(Uinfolist);*/
+            strcat(Uinfolist,",'");
+            /*printf(Uinfolist);*/
+            strcat(Uinfolist,strtmp);
+            /*printf(Uinfolist);*/
+            strcat(Uinfolist,"',16);");
+            /*printf(Uinfolist);printf("\r\n");*/
 
             strcpy(firstline,"DS16(4,");
             strcat(firstline,pos);
             strcat(firstline,",'姓名：',16);");
-            printf(firstline);printf("\r\n");
+            /*printf(firstline);printf("\r\n");*/
             Lcd_Display(firstline);
             Lcd_Display(Uinfolist);
 
@@ -780,17 +815,17 @@ int checkserial(unsigned char * filename,unsigned char * serialarraycheck,unsign
 
 
     res=f_open(&fdrd,filename, FA_OPEN_EXISTING | FA_READ);
-    printf("3 ");
+    /*printf("3 "); //TODO*/
     if(res)
     {
-        printf("not open");
+        /*printf("not open"); //TODO*/
         return -1;
     }
-    printf("4 ");
+    /*printf("4 "); //TODO*/
     for(;;)
     {
         res = f_read( &fdrd, filetemp, strall, &br );
-        printf("%02x ",res);
+        /*printf("%02x ",res); //TODO*/
         if (res||br==0) break;
         else
         {
@@ -819,7 +854,7 @@ int checkserial(unsigned char * filename,unsigned char * serialarraycheck,unsign
             }
         }
     }
-    printf("5 ");
+    /*printf("5 "); //TODO*/
     f_close(&fdrd);
     return 0;
 
@@ -834,7 +869,6 @@ int checkserial(unsigned char * filename,unsigned char * serialarraycheck,unsign
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
 int writelog(unsigned char * filename,unsigned char * filecontent,unsigned char lencont,unsigned char sflag )
 {
-
     bw=1  ;
 
     if(sflag==0)
@@ -842,7 +876,7 @@ int writelog(unsigned char * filename,unsigned char * filecontent,unsigned char 
         res = f_open(&fdwr,filename,FA_CREATE_ALWAYS| FA_WRITE);
         if(res)
         {
-            printf("not open");
+            /*printf("not open"); //TODO*/
             return -1 ;
         }
     }
@@ -851,20 +885,18 @@ int writelog(unsigned char * filename,unsigned char * filecontent,unsigned char 
         res = f_open(&fdwr,filename,FA_OPEN_ALWAYS| FA_WRITE);
         if(res)
         {
-            printf("not open");
+            /*printf("not open"); //TODO*/
             return -1 ;
         }
         f_lseek(&fdwr,fdwr.fsize);
     }
 
     res = f_write(&fdwr, filecontent, lencont, &bw);
-    if(res)
-        printf("write error!\n");
+    /*if(res)*/
+    /*    printf("write error!\n"); //TODO*/
     f_close(&fdwr);
 
     return 0;
-
-
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -882,7 +914,7 @@ int printallfile(unsigned char * filename )
     res=f_open(&fdrd,filename, FA_OPEN_EXISTING | FA_READ);
     if(res)
     {
-        printf("not open");
+        /*printf("not open"); //TODO*/
         return -1;
     }
 
@@ -909,8 +941,8 @@ int printallfile(unsigned char * filename )
             send_count+=strall;
             plen=fill_tcp_data_p(buf,0,filetemp);
             SendTcp(plen);
-            printf("%d\r\n",gflag_send);
-            printf(filetemp);printf("\r\n");
+            /*printf("%d\r\n",gflag_send);*/ //TODO
+            /*printf(filetemp);printf("\r\n");*/
 
         }
     }
@@ -938,8 +970,8 @@ int printallfile(unsigned char * filename )
             send_count+=strall;
             plen=fill_tcp_data_p(buf,0,filetemp);
             SendTcp(plen);
-            printf("%d\r\n",gflag_send);
-            printf(filetemp);printf("\r\n");
+            /*printf("%d\r\n",gflag_send);*/ //TODO
+            /*printf(filetemp);printf("\r\n");*/
 
         }
     }
@@ -947,15 +979,20 @@ int printallfile(unsigned char * filename )
     {
         plen=fill_tcp_data_p(buf,0,"lend");
         SendTcp(plen);
-        printf("%d\r\n",gflag_send);
+        /*printf("%d\r\n",gflag_send); //TODO*/
         //printf(filetemp);
 
     }
 
-
     f_close(&fdrd);
     return 0;
+}
 
-
+static void Error_Handler(void)
+{
+    while(1)
+    {
+        __NOP();
+    }
 }
 
