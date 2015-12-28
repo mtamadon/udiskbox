@@ -4,7 +4,7 @@
 
 //加入以下代码,支持printf函数,而不需要选择use MicroLIB
 #if 0
-#pragma import(__use_no_semihosting)
+/*#pragma import(__use_no_semihosting)*/
 //标准库需要的支持函数
 struct __FILE
 {
@@ -116,7 +116,7 @@ void RFIDUSARTConfig(USART_TypeDef * USART_X)
     RFIDUSART_Handle.Init.Parity         = USART_PARITY_NONE;
     RFIDUSART_Handle.Init.Mode           = USART_MODE_TX_RX;
     HAL_USART_Init(&RFIDUSART_Handle);
-    __HAL_USART_ENABLE(&RFIDUSART_Handle);
+    __HAL_USART_ENABLE_IT(&RFIDUSART_Handle, USART_IT_RXNE);
 }
 
 void LCDUSARTConfig(USART_TypeDef * USART_X)
@@ -128,51 +128,6 @@ void LCDUSARTConfig(USART_TypeDef * USART_X)
     LCDUSART_Handle.Init.Parity         = USART_PARITY_NONE;
     LCDUSART_Handle.Init.Mode           = USART_MODE_TX_RX;
     HAL_USART_Init(&LCDUSART_Handle);
-    __HAL_USART_ENABLE(&LCDUSART_Handle);
-}
-
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- ** 函数名称: Usart_Init
- ** 功能描述: 串口引脚初始化，初始化USART1、USART2、USART3
- ** 参数描述: 无
- ** 作  　者: Dream
- ** 日　  期: 2011年6月20日
- :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-void Init_UsartGpio(void)
-{
-    GPIO_InitTypeDef GPIO_InitStructure;     //定义一个GPIO结构体变量
-
-    /*RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA ,ENABLE);*/
-
-    /*RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1,ENABLE); //USART1*/
-    /*RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2,ENABLE); //USART2*/
-
-    /*RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB ,ENABLE); //USART3*/
-    /*RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3,ENABLE);*/
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    __HAL_RCC_AFIO_CLK_ENABLE();
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_USART1_CLK_ENABLE();
-    __HAL_RCC_USART2_CLK_ENABLE();
-    __HAL_RCC_USART3_CLK_ENABLE(); //使能各个端口时钟，重要！！！
-
-    GPIO_InitStructure.Pin = GPIO_PIN_2|GPIO_PIN_9;
-    GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;      //复用功能输出开漏
-    GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;     //配置端口速度为50M
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);        //根据参数初始化GPIOA寄存器
-
-    GPIO_InitStructure.Pin = GPIO_PIN_3|GPIO_PIN_10;
-    GPIO_InitStructure.Mode = GPIO_MODE_INPUT; //浮空输入(复位状态);
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);        //根据参数初始化GPIOA寄存器
-
-    GPIO_InitStructure.Pin = GPIO_PIN_10;     //配置串口接收端口挂接到10端口 USART3
-    GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;      //复用功能输出开漏
-    GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;     //配置端口速度为50M
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);        //根据参数初始化GPIOA寄存器
-
-    GPIO_InitStructure.Pin = GPIO_PIN_11;
-    GPIO_InitStructure.Mode = GPIO_MODE_INPUT; //浮空输入(复位状态);
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStructure);        //根据参数初始化GPIOA寄存器
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -206,76 +161,83 @@ void Usart_Configuration(USART_TypeDef * USART_X, uint32_t BaudRate)
  */
 
  //FIXME
-/*
- *void RFIDUSART_IRQHandler(void)
- *{
- *  [>uint32_t tmp_flag = 0, tmp_it_source = 0;<]
- *  [>tmp_flag = __HAL_USART_GET_FLAG(husart, USART_FLAG_RXNE);<]
- *  [>tmp_it_source = __HAL_USART_GET_IT_SOURCE(husart, USART_IT_RXNE);<]
- *  [>if((tmp_flag != RESET) && (tmp_it_source != RESET))<]
- *    static unsigned char bTemp, flag=0;
- *    static unsigned char sflag = 0;
- *
- *    [> 串口接收 <]
- *    if(USART_GetFlagStatus(USART2, USART_FLAG_RXNE) == SET)
- *    {
- *        [> 清串口中断标记 <]
- *        bTemp = USART_ReceiveData(USART2);
- *        [> 上条命令处理完成才接收 <]
- *        if(Cmd.ReceiveFlag == 0)
- *        {
- *            [> 7F 标记，为 0 表示上一个数据不是7F <]
- *            if(flag == 0)
- *            {
- *                [> 上一个标记不是7F，这个是，打上标记 <]
- *                if(bTemp == 0x7F){flag = 1;}
- *                [> 把值存进接收缓存 <]
- *                Cmd.ReceiveBuffer[Cmd.ReceivePoint++] = bTemp;
- *            }
- *            else
- *            {
- *                flag = 0;
- *                [> 上一个是7F，这一个不是表示收到【命令头】 <]
- *                if(bTemp != 0x7F)
- *                {
- *                    Cmd.ReceivePoint = 0;
- *                    Cmd.ReceiveBuffer[Cmd.ReceivePoint++] = bTemp;
- *                }
- *                [> 上一个是7F，这一个也是，则忽略当前的7F <]
- *            }
- *            if(Cmd.ReceivePoint >= 32){Cmd.ReceivePoint = 0;}
- *            [> 接收指针大于 2 个开始对比命令长度和接收指针，一致表示收到完整命令 <]
- *            if(Cmd.ReceivePoint > 2){if(Cmd.ReceivePoint == Cmd.ReceiveBuffer[0]+1){Cmd.ReceiveFlag = 1;}}
- *        }
- *    }
- *    [> 发送 <]
- *    if(USART_GetFlagStatus(USART2, USART_FLAG_TC) == SET)
- *    {
- *        USART_ClearFlag(USART2, USART_FLAG_TC);
- *        [> 发送指针不为0时继续发送 <]
- *        if(Cmd.SendPoint != 0)
- *        {
- *            [> 7F判断 <]
- *            if(sflag == 0)
- *            {
- *                Cmd.SendPoint--;
- *                USART_SendData(USART2, Cmd.SendBuffer[Cmd.SendBuffer[0] - Cmd.SendPoint]);
- *                if(Cmd.SendBuffer[Cmd.SendBuffer[0] - Cmd.SendPoint] == 0x7F){sflag = 1;}
- *            }
- *            else
- *            {
- *                sflag = 0;USART_SendData(USART2, 0x7F);
- *            }
- *        }
- *        [> 发送指针为0时打上发送标记表示发送完成 <]
- *        else
- *        {
- *            Cmd.SendFlag = 0;
- *        }
- *    }
- *    USART2->SR = 0;
- *}
- */
+void RFIDUSART_IRQHandler(void)
+{
+    USART_HandleTypeDef * husart = (USART_HandleTypeDef*) RFIDUSART_IRQHandler; //TODO: movo out of handler
+    uint32_t tmp_flag = 0, tmp_it_source = 0;
+
+    static unsigned char bTemp, flag=0;
+    static unsigned char sflag = 0;
+
+    /* 串口接收 */
+    /*if(USART_GetFlagStatus(USART2, USART_FLAG_RXNE) == SET)*/
+    tmp_flag = __HAL_USART_GET_FLAG(husart, USART_FLAG_RXNE);
+    tmp_it_source = __HAL_USART_GET_IT_SOURCE(husart, USART_IT_RXNE);
+    if((tmp_flag != RESET) && (tmp_it_source != RESET))
+    {
+        /* 清串口中断标记 */
+        /*bTemp = USART_ReceiveData(USART2);*/
+        bTemp = (uint8_t)(husart->Instance->DR & (uint8_t)0x00FF); //TODO
+        /* 上条命令处理完成才接收 */
+        if(Cmd.ReceiveFlag == 0)
+        {
+            /* 7F 标记，为 0 表示上一个数据不是7F */
+            if(flag == 0)
+            {
+                /* 上一个标记不是7F，这个是，打上标记 */
+                if(bTemp == 0x7F){flag = 1;}
+                /* 把值存进接收缓存 */
+                Cmd.ReceiveBuffer[Cmd.ReceivePoint++] = bTemp;
+            }
+            else
+            {
+                flag = 0;
+                /* 上一个是7F，这一个不是表示收到【命令头】 */
+                if(bTemp != 0x7F)
+                {
+                    Cmd.ReceivePoint = 0;
+                    Cmd.ReceiveBuffer[Cmd.ReceivePoint++] = bTemp;
+                }
+                /* 上一个是7F，这一个也是，则忽略当前的7F */
+            }
+            if(Cmd.ReceivePoint >= 32){Cmd.ReceivePoint = 0;}
+            /* 接收指针大于 2 个开始对比命令长度和接收指针，一致表示收到完整命令 */
+            if(Cmd.ReceivePoint > 2){if(Cmd.ReceivePoint == Cmd.ReceiveBuffer[0]+1){Cmd.ReceiveFlag = 1;}}
+        }
+    }
+    /* 发送 */
+    /*if(USART_GetFlagStatus(USART2, USART_FLAG_TC) == SET)*/
+    tmp_flag = __HAL_USART_GET_FLAG(husart, USART_FLAG_TC);
+    tmp_it_source = __HAL_USART_GET_IT_SOURCE(husart, USART_IT_TC);
+    if((tmp_flag != RESET) && (tmp_it_source != RESET))
+    {
+        /*USART_ClearFlag(USART2, USART_FLAG_TC);*/
+        __HAL_USART_CLEAR_FLAG(husart, USART_FLAG_TC);
+        /* 发送指针不为0时继续发送 */
+        if(Cmd.SendPoint != 0)
+        {
+            /* 7F判断 */
+            if(sflag == 0)
+            {
+                Cmd.SendPoint--;
+                /*USART_SendData(USART2, Cmd.SendBuffer[Cmd.SendBuffer[0] - Cmd.SendPoint]);*/
+                WRITE_REG(husart->Instance->DR, Cmd.SendBuffer[Cmd.SendBuffer[0] - Cmd.SendPoint] & (uint8_t) 0xFF);
+                if(Cmd.SendBuffer[Cmd.SendBuffer[0] - Cmd.SendPoint] == 0x7F){sflag = 1;}
+            }
+            else
+            {
+                sflag = 0;
+                /*USART_SendData(USART2, 0x7F);*/
+                WRITE_REG(husart->Instance->DR, 0x7F);
+            }
+        }
+        /* 发送指针为0时打上发送标记表示发送完成 */
+        else
+        {
+            Cmd.SendFlag = 0;
+        }
+    }
+}
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: Lcd_Display
@@ -287,6 +249,6 @@ void Usart_Configuration(USART_TypeDef * USART_X, uint32_t BaudRate)
 void Lcd_Display(char * buf1)
 {
     int length = strlen(buf1);
-    HAL_StatusTypeDef s = HAL_USART_Transmit(&LCDUSART_Handle, (unsigned char *)buf1, length, 5000);
+    HAL_USART_Transmit(&LCDUSART_Handle, (unsigned char *)buf1, length, 5000);
 }
 
