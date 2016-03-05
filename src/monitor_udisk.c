@@ -1,13 +1,7 @@
-#include "rfidupan.h"
-#include "PICC.h"
-#include "lcd.h"
-#include "strutils.h"
-#include "ds1302.h"
-#include "cmsis_os.h"
+#include "main.h"
 
 extern void Time_Conv(uint8_t * tt,unsigned char cnt,char * timestr);  //日期时间
 
-extern uint8_t upanState;
 extern PICC Picc;
 extern DISSTRUCT LCDSTRUCT;
 

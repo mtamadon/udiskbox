@@ -1,10 +1,6 @@
-#include "ff.h"
+#include "main.h"
 
 FIL staffdb_fd;
-
-extern const uint8_t ID_LEN;
-extern const uint8_t RECORD_LEN;
-extern const uint8_t UDISK_RECORD_LEN;
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: checkserial

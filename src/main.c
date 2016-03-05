@@ -10,37 +10,7 @@
  * 淘宝    ：http://firestm32.taobao.com
  *********************************************************************************/
 /* Includes ------------------------------------------------------------------*/
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "stdint.h"
-
-#include "stm32f1xx_hal.h"
-#include "stm32f1xx_it.h"
-
-#include "ff.h"
-#include "ff_gen_drv.h"
-#include "sd_diskio.h"
-
-#include "cmsis_os.h"
-
-#include "usart.h"
-#include "PICC.h"
-#include "ds1302.h"
-#include "rfidupan.h"
-#include "sd_board.h"
-
-#include "spi_enc28j60.h"
-#include "net.h"
-#include "lcd.h"
-
-
-//--------------------变量定义
-
-//--------------------显示结构体
-extern DISSTRUCT LCDSTRUCT;
-
-//--------------------函数申明
+#include "main.h"
 
 void Init_RfidUpan_GPIO(void);
 
@@ -73,11 +43,8 @@ const uint8_t UDISK_RECORD_LEN = 32; //@xxx(RFID号码10位)+空格(1位)+xxx(5�
 char SDPath[4];
 FATFS fs;
 
-const char userfilename[20]="0:/cardlist.txt"; //职工txt
-const char upanfilename[20]="0:/upanlist.txt"; //职工txt
-
-uint8_t key_time = 0;
-unsigned char count;
+const char *userfilename = "0:/cardlist.txt"; //职工txt
+const char *upanfilename = "0:/upanlist.txt"; //职工txt
 
 /*extern unsigned char indarray[20];*/
 /*extern unsigned char lenind;*/

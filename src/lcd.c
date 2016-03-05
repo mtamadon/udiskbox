@@ -1,12 +1,4 @@
-#include "lcd.h"
-#include "usart.h"
-#include "ff.h"
-#include "strutils.h"
-
-extern const uint8_t ID_LEN;
-extern const uint8_t RECORD_LEN;
-extern const uint8_t UDISK_RECORD_LEN;
-extern char userfilename[];
+#include "main.h"
 
 DISSTRUCT LCDSTRUCT;
 extern FIL staffdb_fd;
