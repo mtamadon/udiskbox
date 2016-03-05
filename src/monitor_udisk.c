@@ -8,6 +8,7 @@ extern DISSTRUCT LCDSTRUCT;
 const uint32_t upanNum[2]={157384350, 2306834590};
 
 uint8_t checkUdiskState(uint8_t ports);
+uint8_t upanState = 0x00;
 
 void monitorUdisk()
 {
@@ -16,18 +17,22 @@ void monitorUdisk()
     {
         uint8_t state = checkUdiskState( (uint8_t)0x01<<2 & (uint8_t)0x01<<1 & (uint8_t)0x01 );
 
-        //if((upanState&0x01)==0)
-        //{
-        //    strcpy(LCDSTRUCT.UdiskInfo, strtmp);
-        //    strcat(LCDSTRUCT.UdiskInfo," (1)");
-        //}
-        //if((upanState&0x02)==0)
-        //{
-        //    strcpy(LCDSTRUCT.UdiskInfo2, strtmp);
-        //    strcat(LCDSTRUCT.UdiskInfo2," (2)");
-        //}
+        if((upanState ^ UDISK1) != 0) //TODO
+        {
+            strcat(LCDSTRUCT.UdiskInfo1," (1)");
+        }
 
-        LCDUpdate('a');
+        if((upanState ^ UDISK2) != 0)
+        {
+            strcat(LCDSTRUCT.UdiskInfo2," (2)");
+        }
+
+        if((upanState ^ UDISK3) != 0)
+        {
+            strcat(LCDSTRUCT.UdiskInfo3," (3)");
+        }
+
+        osSignalSet(lcdupdate_ThreadID, NEED_UPDATE_A);
         vTaskDelay(100/portTICK_PERIOD_MS); //FIXME
     }
 }

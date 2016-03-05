@@ -253,4 +253,8 @@ int LCDShowUpanState(char * filename)
 
 void LCDUpdateThread()
 {
+    osEvent lcdupdate_event;
+    lcdupdate_event = osSignalWait(NEED_UPDATE_A|NEED_UPDATE_E, osWaitForever);
+    if(lcdupdate_event.value.signals == NEED_UPDATE_A)
+        LCDUpdate('a');
 }

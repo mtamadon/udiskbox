@@ -1,25 +1,16 @@
-#include "stdint.h"
+#include "main.h"
 
-#include "PICC.h"
-
-#include "strutils.h"
-#include "lcd.h"
-#include "door.h"
-#include "ds1302.h"
-
-extern int checkserial(char *filename, uint8_t *serialarraycheck, uint8_t *namearray);
+extern int checkserial(const char *filename, uint8_t *serialarraycheck, uint8_t *namearray);
 extern void LCDUpdate(char stype);
 extern void Time_Conv(uint8_t * tt,unsigned char cnt,char * timestr);  //日期时间
 
-uint8_t cmd_status;
-extern DISSTRUCT LCDSTRUCT;
 int stread, stwrite=0;
-extern char userfilename[];
 
 void monitorRFID()
 {
     unsigned char namearray[20]="";
     unsigned char strtmp[30]="";
+    uint8_t cmd_status;
 
     Cmd.SendFlag = 0;       //初始化RFID标志位
     Cmd.ReceiveFlag = 0;
@@ -31,7 +22,10 @@ void monitorRFID()
         ReadDS1302Clock(tt);
         Time_Conv(tt, 6, LCDSTRUCT.TimeNow);
 
+        xSemaphoreTake(sem_cmd, 0);
         cmd_status = CommandProcess();
+        xSemaphoreGive(sem_cmd);
+
         if(cmd_status == 0)
         {
             //在这里开始你的操作

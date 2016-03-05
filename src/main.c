@@ -33,13 +33,9 @@ extern USART_HandleTypeDef USART3_Handle;
 /*static unsigned char door_state=0;*/
 /*static unsigned char door_closed=0;*/
 uint8_t door_state = 0;
-uint8_t upanState=0x00;
 
 // 文件操作变量区域
 /*unsigned char namenum=8;*/
-const uint8_t ID_LEN = 10;
-const uint8_t RECORD_LEN = 22; //@xxx(RFID号码10位)+空格(1位)+xxx(名称前面补空格)+0A0D(换行符)
-const uint8_t UDISK_RECORD_LEN = 32; //@xxx(RFID号码10位)+空格(1位)+xxx(5位upan名称)+空格(1位)+xxx(借U盘人的RFID号码10位)+0A0D(换行符)
 char SDPath[4];
 FATFS fs;
 
@@ -56,10 +52,11 @@ void HAL_MspInit()
     __HAL_RCC_AFIO_CLK_ENABLE();
 }
 
-extern void monitorRFID();
-extern void monitorUdisk();
 osThreadId rfid_ThreadID;
 osThreadId udisk_ThreadID;
+osThreadId lcdupdate_ThreadID;
+
+xSemaphoreHandle sem_cmd;
 
 int main(void)
 {
@@ -102,11 +99,15 @@ int main(void)
 
     LCDShowUpanState(upanfilename);
 
+    vSemaphoreCreateBinary(sem_cmd);
+
     osThreadDef(MONITOR_RFID, monitorRFID, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
     osThreadDef(MONITOR_UDISK, monitorUdisk, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+    osThreadDef(UPDATE_LCD, LCDUpdateThread, osPriorityLow, 0, configMINIMAL_STACK_SIZE);
 
     rfid_ThreadID = osThreadCreate(osThread(MONITOR_RFID), NULL);
     udisk_ThreadID = osThreadCreate(osThread(MONITOR_UDISK), NULL);
+    lcdupdate_ThreadID = osThreadCreate(osThread(UPDATE_LCD), NULL);
 
     osKernelStart();
 
@@ -322,5 +323,101 @@ void SendCommand(void)
     Cmd.SendBuffer[Cmd.SendBuffer[0]] = CheckSum(Cmd.SendBuffer, Cmd.SendBuffer[0]);
     Cmd.SendPoint = Cmd.SendBuffer[0] + 1;
     USART_SendByte( &RFIDUART_Handle, 0x7F);
+}
+
+ //FIXME
+void RFIDUART_IRQHandler(void)
+{
+    USART_HandleTypeDef * husart = (USART_HandleTypeDef*) &RFIDUART_Handle; //TODO: movo out of handler
+    uint32_t tmp_flag = 0, tmp_it_source = 0;
+
+    static __IO uint8_t bTemp, flag=0;
+    static __IO uint8_t sflag = 0;
+
+    /* 串口接收 */
+    /*if(USART_GetFlagStatus(USART2, USART_FLAG_RXNE) == SET)*/
+    tmp_flag = __HAL_USART_GET_FLAG(husart, USART_FLAG_RXNE);
+    tmp_it_source = __HAL_USART_GET_IT_SOURCE(husart, USART_IT_RXNE);
+    if((tmp_flag != RESET) && (tmp_it_source != RESET))
+    {
+        /* 清串口中断标记 */
+        /*bTemp = USART_ReceiveData(USART2);*/
+        __IO uint32_t t = husart->Instance->DR;
+        bTemp = (uint8_t)(t & (uint32_t)0x00FF); //TODO
+        /* 上条命令处理完成才接收 */
+        if(Cmd.ReceiveFlag == 0)
+        {
+            if(xSemaphoreTake(sem_cmd, 0) == pdFALSE)
+                return;
+            /* 7F 标记，为 0 表示上一个数据不是7F */
+            if(flag == 0)
+            {
+                /* 上一个标记不是7F，这个是，打上标记 */
+                if(bTemp == 0x7F)
+                    flag = 1;
+                /* 把值存进接收缓存 */
+                Cmd.ReceiveBuffer[Cmd.ReceivePoint++] = bTemp;
+            }
+            else
+            {
+                flag = 0;
+                /* 上一个是7F，这一个不是表示收到【命令头】 */
+                if(bTemp != 0x7F)
+                {
+                    Cmd.ReceivePoint = 0;
+                    Cmd.ReceiveBuffer[Cmd.ReceivePoint++] = bTemp;
+                }
+                /* 上一个是7F，这一个也是，则忽略当前的7F */
+            }
+            if(Cmd.ReceivePoint >= 32)
+            {
+                Cmd.ReceivePoint = 0;
+            }
+            /* 接收指针大于 2 个开始对比命令长度和接收指针，一致表示收到完整命令 */
+            if(Cmd.ReceivePoint > 2)
+            {
+                if(Cmd.ReceivePoint == Cmd.ReceiveBuffer[0]+1)
+                {
+                    Cmd.ReceiveFlag = 1;
+                    xSemaphoreGiveFromISR(sem_cmd, pdFALSE);
+                }
+            }
+        }
+    }
+    /* 发送 */
+    /*if(USART_GetFlagStatus(USART2, USART_FLAG_TC) == SET)*/
+    tmp_flag = __HAL_USART_GET_FLAG(husart, USART_FLAG_TC);
+    tmp_it_source = __HAL_USART_GET_IT_SOURCE(husart, USART_IT_TC);
+    if((tmp_flag != RESET) && (tmp_it_source != RESET))
+    {
+        /*USART_ClearFlag(USART2, USART_FLAG_TC);*/
+        __HAL_USART_CLEAR_FLAG(husart, USART_FLAG_TC);
+        /* 发送指针不为0时继续发送 */
+        if(Cmd.SendPoint != 0)
+        {
+            /* 7F判断 */
+            if(sflag == 0)
+            {
+                Cmd.SendPoint--;
+                /*USART_SendData(USART2, Cmd.SendBuffer[Cmd.SendBuffer[0] - Cmd.SendPoint]);*/
+                WRITE_REG(husart->Instance->DR, Cmd.SendBuffer[Cmd.SendBuffer[0]-Cmd.SendPoint] & (uint8_t) 0xFF);
+                if(Cmd.SendBuffer[Cmd.SendBuffer[0] - Cmd.SendPoint] == 0x7F)
+                {
+                    sflag = 1;
+                }
+            }
+            else
+            {
+                sflag = 0;
+                /*USART_SendData(USART2, 0x7F);*/
+                WRITE_REG(husart->Instance->DR, 0x7F);
+            }
+        }
+        /* 发送指针为0时打上发送标记表示发送完成 */
+        else
+        {
+            Cmd.SendFlag = 0;
+        }
+    }
 }
 
