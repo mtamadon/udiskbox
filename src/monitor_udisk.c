@@ -70,8 +70,8 @@ uint8_t checkUdiskState(uint8_t ports)
                 if((Picc.UID-upanNum[0])==0)
                 {
                     upanState=upanState|0x01;
-                    LongToStr(LCDSTRUCT.UdiskInfo,Picc.UID,10);
-                    strcat(LCDSTRUCT.UdiskInfo," (1)");
+                    LongToStr(LCDSTRUCT.UdiskInfo1,Picc.UID,10);
+                    strcat(LCDSTRUCT.UdiskInfo1," (1)");
                 }
                 else if((Picc.UID-upanNum[1])==0)
                 {

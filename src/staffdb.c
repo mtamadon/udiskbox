@@ -9,7 +9,7 @@ FIL staffdb_fd;
  ** 作  　者: cuikun
  ** 日　  期: 2015年7月19日
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-int checkserial(char * filename,unsigned char * serialarraycheck,unsigned char * namearray)
+int checkserial(const char * filename,unsigned char * serialarraycheck,unsigned char * namearray)
 {
     unsigned char namelen=0;
     unsigned char serialarray[10]="";

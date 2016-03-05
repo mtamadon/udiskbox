@@ -2,7 +2,7 @@
 
 DISSTRUCT LCDSTRUCT;
 extern FIL staffdb_fd;
-extern int checkserial(char *filename, uint8_t *serialarraycheck, uint8_t *namearray);
+extern int checkserial(const char *filename, uint8_t *serialarraycheck, uint8_t *namearray);
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  ** 函数名称: LCDUpdate
@@ -39,7 +39,7 @@ void LCDUpdate(char stype)
                 strcat(PhoneNum_Array,"',4);");
 
                 strcpy(UdiskInfo_Array,"DS16(80,96,'");
-                strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);
+                strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo1);
                 strcat(UdiskInfo_Array,"',4);");
 
                 strcpy(UdiskInfo_Array2,"DS16(200,96,'");
@@ -102,7 +102,7 @@ void LCDUpdate(char stype)
         case 'i':
             {
                 strcpy(UdiskInfo_Array,"DS16(100,96,'");
-                strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);
+                strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo1);
                 strcat(UdiskInfo_Array,"',4);");
                 Lcd_Display(UdiskInfo_Array);
             }break;
@@ -147,7 +147,7 @@ void Init_LCDSTRUCT()
     strcpy(LCDSTRUCT.Name,"");
     strcpy(LCDSTRUCT.UserID,"");
     strcpy(LCDSTRUCT.PhoneNum,"");
-    strcpy(LCDSTRUCT.UdiskInfo,"");
+    strcpy(LCDSTRUCT.UdiskInfo1,"");
     strcpy(LCDSTRUCT.UdiskState,"");
     strcpy(LCDSTRUCT.Temperature,"");
     strcpy(LCDSTRUCT.TimeNow,"");
@@ -160,7 +160,7 @@ void Init_LCDSTRUCT()
  ** 作  　者: cuikun
  ** 日　  期: 2011年6月20日
  :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-int LCDShowUpanState(char * filename)
+int LCDShowUpanState(const char * filename)
 {
     uint8_t space[4]="  ";
     uint8_t norm[6]="正常";
