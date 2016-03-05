@@ -4,11 +4,14 @@ FIND_PACKAGE(STM32HAL REQUIRED)
 SET(STORAGE_DRIVER SDCARD)
 FIND_PACKAGE(FATFS REQUIRED)
 
+FIND_PACKAGE(FreeRTOS REQUIRED)
+
 INCLUDE_DIRECTORIES(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMSIS_INCLUDE_DIRS}
     ${STM32HAL_INCLUDE_DIR}
     ${FATFS_INCLUDE_DIRS}
+    ${FreeRTOS_INCLUDE_DIRS}
 )
 
 aux_source_directory(. MAIN_SRCS)
@@ -39,6 +42,7 @@ ADD_EXECUTABLE(${CMAKE_PROJECT_NAME}
     ${CMSIS_SOURCES}
     ${STM32HAL_SOURCES}
     ${FATFS_SOURCES}
+    ${FreeRTOS_SOURCES}
 )
 
 STM32_SET_TARGET_PROPERTIES(${CMAKE_PROJECT_NAME})
@@ -86,7 +90,7 @@ SET(GDB_CONF
     "monitor reset halt\n"
     "load ${ELF_FILENAME}\n"
     "delete\n"
-    "b main\n"
+    "break main\n"
     "end\n"
     "\n"
     "define reset\n"
@@ -98,7 +102,8 @@ SET(GDB_CONF
     "end\n"
     "\n"
     "connect_debugger\n"
-    )
+    "tbreak main\n"
+)
 FILE(WRITE ${CMAKE_CURRENT_BINARY_DIR}/gdbinit ${GDB_CONF})
 
 ADD_CUSTOM_TARGET(PROGRAMCHIP

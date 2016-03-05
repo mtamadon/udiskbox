@@ -10,132 +10,99 @@
  * 淘宝    ：http://firestm32.taobao.com
  *********************************************************************************/
 /* Includes ------------------------------------------------------------------*/
+#include "string.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "stdint.h"
+
 #include "stm32f1xx_hal.h"
-#include "system_stm32f1xx.h"
+#include "stm32f1xx_it.h"
 
 #include "ff.h"
 #include "ff_gen_drv.h"
 #include "sd_diskio.h"
 
+#include "cmsis_os.h"
+
 #include "usart.h"
 #include "PICC.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
 #include "ds1302.h"
 #include "rfidupan.h"
-#include "inttypes.h"
 #include "sd_board.h"
 
 #include "spi_enc28j60.h"
-#include "web_server.h"
 #include "net.h"
+#include "lcd.h"
 
 
-//变量定义
+//--------------------变量定义
 
-//显示结构体
-typedef struct _DISSTRUCT
-{
-    char Name[32];
-    char UserID[32];
-    char UdiskInfo2[32];
-    char PhoneNum[32];
-    char UdiskInfo[32];
-    char UdiskState[32];
-    char Temperature[32];
-    char TimeNow[32];
+//--------------------显示结构体
+extern DISSTRUCT LCDSTRUCT;
 
-}DISSTRUCT ;
+//--------------------函数申明
 
-DISSTRUCT LCDSTRUCT;
-
-//函数申明
-
-static void Error_Handler(void);
-void LCDUpdate(char stype);    //LCD显示
-void Init_LCDSTRUCT(void);
+void Init_RfidUpan_GPIO(void);
 
 void Time_Conv(uint8_t * tt,unsigned char cnt,char * timestr);  //日期时间
-char PcdRequest(unsigned char req_code,unsigned char *pTagType);
-void ncs(unsigned char cse);
 
 void Init_LED(void);
 void Delay_Ms(uint16_t time);
 void Delay_Us(uint16_t time);
 
-void Init_RfidUpan_GPIO(void);
-void Init_RFID(void);  //初始化RFID
 unsigned char CheckSum(unsigned char *dat, unsigned char num);
 void SendCommand(void);
-void LongToStr( char *array, unsigned long number, unsigned char count);
 
-void uchar2str(unsigned char i,unsigned char * strname);
-int LCDShowUpanState(unsigned char * filename);
-
-int checkserial(unsigned char *filename,unsigned char *serialarraycheck,unsigned char * namearray);
-int writelog(unsigned char * filename,unsigned char * filecontent,unsigned char lencont,unsigned char sflag);
-int printallfile(unsigned char * filename );
-
-extern USART_HandleTypeDef ConsoleUSART_Handle;
-extern USART_HandleTypeDef RFIDUSART_Handle;
+extern UART_HandleTypeDef Console_Handle;
+extern UART_HandleTypeDef RFIDUART_Handle;
 extern USART_HandleTypeDef USART3_Handle;
 
-extern unsigned  int fill_tcp_data_p(unsigned char *buf,unsigned  int pos, const unsigned char *progmem_s);
-extern void SendTcp(unsigned int plen);
 // 全局变量定义区
-uint8_t bTemp;
-static unsigned char rfid1=0;
-static unsigned char rfid2=0;
-static unsigned char door_state=0;
-static unsigned char door_closed=0;
-int res;
-int a;
-long upanNum[2]={157384350,2306834590};
-static unsigned char upanState=0x00;
+/*static unsigned char rfid1=0;*/
+/*static unsigned char rfid2=0;*/
+/*static unsigned char door_state=0;*/
+/*static unsigned char door_closed=0;*/
+uint8_t door_state = 0;
+uint8_t upanState=0x00;
 
 // 文件操作变量区域
-unsigned char serialnum=10,namenum=8,strall=22; //@xxx(RFID号码10位)+空格(1位)+xxx(名称前面补空格)+0A0D(换行符)
-unsigned char upanstrall=32; //@xxx(RFID号码10位)+空格(1位)+xxx(5位upan名称)+空格(1位)+xxx(借U盘人的RFID号码10位)+0A0D(换行符)
+/*unsigned char namenum=8;*/
+const uint8_t ID_LEN = 10;
+const uint8_t RECORD_LEN = 22; //@xxx(RFID号码10位)+空格(1位)+xxx(名称前面补空格)+0A0D(换行符)
+const uint8_t UDISK_RECORD_LEN = 32; //@xxx(RFID号码10位)+空格(1位)+xxx(5位upan名称)+空格(1位)+xxx(借U盘人的RFID号码10位)+0A0D(换行符)
 char SDPath[4];
-FIL fdrd,fdwr;
 FATFS fs;
-UINT br, bw;            // File R/W count
-BYTE buffer;       // file copy buffer
-BYTE filetemp[40]="";
 
-unsigned char userfilename[20]="0:/cardlist.txt"; //职工txt
-unsigned char upanfilename[20]="0:/upanlist.txt"; //职工txt
+const char userfilename[20]="0:/cardlist.txt"; //职工txt
+const char upanfilename[20]="0:/upanlist.txt"; //职工txt
 
 uint8_t key_time = 0;
 unsigned char count;
 
-extern  unsigned char buf[1501];
-
-extern unsigned char indarray[20];
-extern unsigned char lenind;
-unsigned char gflag_send=0;
-DWORD send_count=0;
+/*extern unsigned char indarray[20];*/
+/*extern unsigned char lenind;*/
 
 void SystemClock_Config(void);
 
+void HAL_MspInit()
+{
+    __HAL_RCC_AFIO_CLK_ENABLE();
+}
+
+extern void monitorRFID();
+extern void monitorUdisk();
+osThreadId rfid_ThreadID;
+osThreadId udisk_ThreadID;
+
 int main(void)
 {
-    char hello[14] = "Hello World!\r\n";
-
-    uint8_t tt[7];
-    char rfid_status;
-    unsigned char g_ucTempbuf[20];
-
     //unsigned char serialarraycheck[10]="1119241448";
-    unsigned char namearray[20]="";
-    int stread,stwrite=0;
-    unsigned char strtmp[30]="";
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
     HAL_Init();
     SystemClock_Config();
     Init_LED();      //各个外设引脚配置
+
     DebugLogConsoleConfig(USART1);
     RFIDUSARTConfig(USART2);
     LCDUSARTConfig(USART3);
@@ -144,12 +111,8 @@ int main(void)
     Init_LCDSTRUCT();
     /*LCDUpdate('a');         //LCD显示*/
     //LCDUpdate('n');
-    printf("start..\n\t");
-    HAL_USART_Transmit(&ConsoleUSART_Handle, (uint8_t*)hello, 13, 5000);
-
-    Cmd.SendFlag = 0;       //初始化RFID标志位
-    Cmd.ReceiveFlag = 0;
-    Picc.Value = 0;
+    printf("hello world\r\n\t");
+    /*HAL_UART_Transmit(&Console_Handle, (uint8_t*)hello, 13, 5000);*/
 
     InitClock();            //配置DS1302
 
@@ -158,168 +121,29 @@ int main(void)
     /* ENC28J60 SPI 接口初始化 */
     /*SPI_Enc28j60_Init();//函数初始化*/
     /*SetIpMac();*/ //TODO
-    gflag_send=0;       //变量初始化
-    send_count=0;
-    /* 挂载文件系统*/
 
+    /* 挂载文件系统*/
     if(FATFS_LinkDriver(&SD_Driver, SDPath) == 0)
     {
         /*##-2- Register the file system object to the FatFs module ##############*/
         if(f_mount(&fs, (TCHAR const*)SDPath, 0) != FR_OK)
         {
             /* FatFs Initialization Error */
-            Error_Handler();
+            HardFault_Handler();
         }
     }
 
     LCDShowUpanState(upanfilename);
 
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-     ** 循环区域
-     :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    while(1)
-    {
-        ReadDS1302Clock(tt);
-        Time_Conv(tt,6,LCDSTRUCT.TimeNow);
-        ////////////////////////////////////////////////////////////////////////////////////      检测开箱
-        /*Web_Server();   //网络模块开始工作*/ //TODO
+    osThreadDef(MONITOR_RFID, monitorRFID, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+    osThreadDef(MONITOR_UDISK, monitorUdisk, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 
-        //////////////////////////////////////////////////////////////////////
-        bTemp = CommandProcess();
-        if(bTemp == 0)
-        {
-            //在这里开始你的操作
-            //所有有用数据在 Picc
-            //卡号 ==>Picc.UID
-            //卡类型==>Picc.Type
-            //余额 ==>Picc.Value
-            if(1)//door_state==0)
-            {
-                LongToStr(LCDSTRUCT.UserID,Picc.UID,10);
-                //LCDUpdate('a');
-                stread=checkserial(userfilename,LCDSTRUCT.UserID,namearray);
-                if(stread==-1)
-                    strcpy(strtmp,"OPEN FILE ERROR");
-                else if(stread==0)
-                {
-                    //strcpy(strtmp,"NOT FIND");
-                    door_closed=1;
-                }
-                else if(stread>0)    //比较是否是合法卡
-                {
-                    door_state=1;    //开门
-                    strcpy(strtmp,namearray);//显示姓名，提示关门
-                    strcpy(LCDSTRUCT.Name,strtmp);
-                    LCDUpdate('a');
-                }
-                //strcpy(LCDSTRUCT.Name,strtmp);
-                //LCDUpdate('a');
-            }
-            //door_state=1;
-        }
-        else if(bTemp == 0xFF)
-        {
-            //无卡
-        }
-        else if(bTemp == 0xFE)
-        {
-            LCDUpdate('e');
-        }
-        else if(bTemp == 0xFD)
-        {
-            //参数错误
-        }
+    rfid_ThreadID = osThreadCreate(osThread(MONITOR_RFID), NULL);
+    udisk_ThreadID = osThreadCreate(osThread(MONITOR_UDISK), NULL);
 
-        ///////////////////////////////////////////////////////////////////////////////////////    检测关门
-        if((door_state==1)&&(door_closed==1))
-        {
-            door_state++;
-            rfid1=0;
-            rfid2=0;
-            //door_closed=0;
-            //LCDUpdate('a');
-        }
-        ///////////////////////////////////////////////////////////////////////////////////////     检测u盘
-        if(door_state!=2){door_closed=0;continue;}
+    osKernelStart();
 
-        upanState=0x00;
-        /////////////////////////////////////////////////////////////////////////////////////////   RFID2
-        if(rfid2==0)
-        {
-            ncs(2);//片选
-            Init_RfidUpan();
-            rfid_status = PcdRequest(PICC_REQALL,g_ucTempbuf);//扫描卡
-            /*printf("%02x  ",rfid_status);*/ //TODO
-            if(rfid_status==0)
-            {
-                rfid_status = PcdAnticoll(g_ucTempbuf);//防冲撞
-                if(rfid_status==0)
-                {
-                    Picc.UID = g_ucTempbuf[0];
-                    Picc.UID <<= 8;
-                    Picc.UID |= g_ucTempbuf[1];
-                    Picc.UID <<= 8;
-                    Picc.UID |= g_ucTempbuf[2];
-                    Picc.UID <<= 8;
-                    Picc.UID |= g_ucTempbuf[3];
-                    if((Picc.UID-upanNum[0])==0)
-                    {
-                        upanState=upanState|0x01;
-                        LongToStr(LCDSTRUCT.UdiskInfo,Picc.UID,10);strcat(LCDSTRUCT.UdiskInfo," (1)");
-                    }
-                    else if((Picc.UID-upanNum[1])==0)
-                    {
-                        upanState=upanState|0x02;
-                        LongToStr(LCDSTRUCT.UdiskInfo2,Picc.UID,10);strcat(LCDSTRUCT.UdiskInfo2," (2)");
-                    }
-                    rfid2=1;
-                }
-            }
-        }
-        ///////////////////////////////////////////////////////////////////////////////////////////      RFID1
-        if(rfid1==0)
-        {
-            ncs(1);
-            Init_RfidUpan();
-            rfid_status = PcdRequest(PICC_REQALL,g_ucTempbuf);//扫描卡
-            if(rfid_status==0)
-            {
-                rfid_status = PcdAnticoll(g_ucTempbuf);//防冲撞
-                if(rfid_status==0)
-                {
-                    Picc.UID = g_ucTempbuf[0];
-                    Picc.UID <<= 8;
-                    Picc.UID |= g_ucTempbuf[1];
-                    Picc.UID <<= 8;
-                    Picc.UID |= g_ucTempbuf[2];
-                    Picc.UID <<= 8;
-                    Picc.UID |= g_ucTempbuf[3];
-                    if(Picc.UID-upanNum[0]==0)
-                    {
-                        upanState=upanState|0x01;
-                        LongToStr(LCDSTRUCT.UdiskInfo,Picc.UID,10);strcat(LCDSTRUCT.UdiskInfo," (1)");
-                    }
-                    else if(Picc.UID-upanNum[1]==0)
-                    {
-                        upanState=upanState|0x02;
-                        LongToStr(LCDSTRUCT.UdiskInfo2,Picc.UID,10);strcat(LCDSTRUCT.UdiskInfo2," (2)");
-                    }
-                    rfid1=1;
-                }
-            }
-        }
-        door_state=0;
-        ///////////////////////////////////////////////////////////////////////////////////     显示状态
-        if((upanState&0x01)==0)
-        {
-            strcpy(LCDSTRUCT.UdiskInfo,strtmp);strcat(LCDSTRUCT.UdiskInfo," (1)");
-        }
-        if((upanState&0x02)==0)
-        {
-            strcpy(LCDSTRUCT.UdiskInfo2,strtmp);strcat(LCDSTRUCT.UdiskInfo2," (2)");
-        }
-        LCDUpdate('a');
-    }
+    while(1);
 }
 
 /**
@@ -340,39 +164,34 @@ int main(void)
   */
 void SystemClock_Config(void)
 {
-  RCC_ClkInitTypeDef clkinitstruct = {0};
-  RCC_OscInitTypeDef oscinitstruct = {0};
+    RCC_ClkInitTypeDef clkinitstruct = {0};
+    RCC_OscInitTypeDef oscinitstruct = {0};
 
-  /* Enable HSE Oscillator and activate PLL with HSE as source */
-  oscinitstruct.OscillatorType  = RCC_OSCILLATORTYPE_HSE;
-  oscinitstruct.HSEState        = RCC_HSE_ON;
-  oscinitstruct.HSEPredivValue  = RCC_HSE_PREDIV_DIV1;
-  oscinitstruct.PLL.PLLState    = RCC_PLL_ON;
-  oscinitstruct.PLL.PLLSource   = RCC_PLLSOURCE_HSE;
-  oscinitstruct.PLL.PLLMUL      = RCC_PLL_MUL9;
-  if (HAL_RCC_OscConfig(&oscinitstruct)!= HAL_OK)
-  {
-    /* Initialization Error */
-    while(1);
-  }
+    /* Enable HSE Oscillator and activate PLL with HSE as source */
+    oscinitstruct.OscillatorType  = RCC_OSCILLATORTYPE_HSE;
+    oscinitstruct.HSEState        = RCC_HSE_ON;
+    oscinitstruct.HSEPredivValue  = RCC_HSE_PREDIV_DIV1;
+    oscinitstruct.PLL.PLLState    = RCC_PLL_ON;
+    oscinitstruct.PLL.PLLSource   = RCC_PLLSOURCE_HSE;
+    oscinitstruct.PLL.PLLMUL      = RCC_PLL_MUL9;
+    if (HAL_RCC_OscConfig(&oscinitstruct)!= HAL_OK)
+    {
+        /* Initialization Error */
+        while(1);
+    }
 
-  /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
-     clocks dividers */
-  clkinitstruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
-  clkinitstruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  clkinitstruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  clkinitstruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  clkinitstruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  if (HAL_RCC_ClockConfig(&clkinitstruct, FLASH_LATENCY_2)!= HAL_OK)
-  {
-    /* Initialization Error */
-    while(1);
-  }
-}
-
-void HAL_MspInit(void)
-{
-    HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_2);
+    /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
+       clocks dividers */
+    clkinitstruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
+    clkinitstruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    clkinitstruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    clkinitstruct.APB2CLKDivider = RCC_HCLK_DIV1;
+    clkinitstruct.APB1CLKDivider = RCC_HCLK_DIV2;
+    if (HAL_RCC_ClockConfig(&clkinitstruct, FLASH_LATENCY_2)!= HAL_OK)
+    {
+        /* Initialization Error */
+        while(1);
+    }
 }
 
 /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -424,9 +243,11 @@ void Init_LED()
     GPIO_InitStructure.Pin = GPIO_PIN_14;      //配置LED端口挂接到6、12、13端口
     GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;     //通用输出推挽
     GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;     //配置端口速度为50M
-    HAL_GPIO_Init(GPIOG, &GPIO_InitStructure);        //根据参数初始化GPIOD寄存器RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG | RCC_APB2Periph_GPIOE,ENABLE); //使能各个端口时钟，重要！！！
+    //根据参数初始化GPIOD寄存器
+    //RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOG | RCC_APB2Periph_GPIOE,ENABLE); //使能各个端口时钟，重要！！！
+    HAL_GPIO_Init(GPIOG, &GPIO_InitStructure);
 
-    /*RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD,ENABLE); //使能各个端口时钟，重要！！！*/
+    //RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOD,ENABLE); //使能各个端口时钟，重要！！！
     __HAL_RCC_GPIOD_CLK_ENABLE();
     GPIO_InitStructure.Pin = GPIO_PIN_13;          //配置LED端口挂接到6、12、13端口
     GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;     //通用输出推挽
@@ -476,6 +297,31 @@ void Init_RFID()  //初始化RFID
     ;
 }
 
+void Init_RfidUpan_GPIO()
+{
+    GPIO_InitTypeDef  GPIO_InitStructure;
+
+    /* Enable the GPIO Clock */
+    /*RCC_APB2PeriphClockCmd(MF522_RST_CLK, ENABLE);*/
+    __HAL_RCC_MF522_PORT_CLK_ENABLE();
+    /* Configure the GPIO pin */
+    GPIO_InitStructure.Pin = MF522_RST_PIN| MF522_MOSI_PIN| MF522_SCK_PIN| MF522_NSS_PIN;
+    GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
+
+    HAL_GPIO_Init(MF522_PORT, &GPIO_InitStructure);
+
+    /* Enable the GPIO Clock */
+    /*RCC_APB2PeriphClockCmd(MF522_MISO_CLK, ENABLE);*/
+
+    /* Configure the GPIO pin */
+    GPIO_InitStructure.Pin = MF522_MISO_PIN;
+    GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
+
+    HAL_GPIO_Init(MF522_MISO_PORT, &GPIO_InitStructure);
+}
+
 /*******************************************************************************
  * 函数名         : CheckSum
  * 描述           : 命令校验。
@@ -486,13 +332,13 @@ num : 校验的字节数。
  *******************************************************************************/
 unsigned char CheckSum(unsigned char *dat, unsigned char num)
 {
-    unsigned char bTemp = 0, i;
+    unsigned char cmd_status = 0, i;
 
     for(i = 0; i < num; i ++)
     {
-        bTemp ^= dat[i];
+        cmd_status ^= dat[i];
     }
-    return bTemp;
+    return cmd_status;
 }
 
 /*******************************************************************************
@@ -508,491 +354,6 @@ void SendCommand(void)
     Cmd.SendFlag = 1;
     Cmd.SendBuffer[Cmd.SendBuffer[0]] = CheckSum(Cmd.SendBuffer, Cmd.SendBuffer[0]);
     Cmd.SendPoint = Cmd.SendBuffer[0] + 1;
-    USART_SendByte( &RFIDUSART_Handle, 0x7F);
-}
-
-/*******************************************************************************
- * 函数名         : LCDNumber
- * 描述           : 往 12864 写数字
- * 输入           : address: 地址
- number : 数字
- count  : 数字显示的长度
- * 输出           : 无
- * 返回           : 无
- *******************************************************************************/
-void LongToStr( char *array, unsigned long number, unsigned char count)
-{
-    // unsigned char array[11];
-    unsigned char i;
-
-    array[count] = 0;
-    for(i = count; i > 0; i --){array[i-1] = number % 10+'0';number /= 10;}
-    for(i = 0; i < count-1; i ++){if(array[i]=='0'){array[i] = ' ';}else{break;}}
-}
-
-/*******************************************************************************
- * 函数名         : Init_LCDSTRUCT
- * 描述           : 初始化LCDSTRUCT结构体,全部赋值空
- * 输入           : 空
- * 输出           : 无
- * 返回           : 无
- *******************************************************************************/
-void Init_LCDSTRUCT()
-{
-    strcpy(LCDSTRUCT.Name,"");
-    strcpy(LCDSTRUCT.UserID,"");
-    strcpy(LCDSTRUCT.PhoneNum,"");
-    strcpy(LCDSTRUCT.UdiskInfo,"");
-    strcpy(LCDSTRUCT.UdiskState,"");
-    strcpy(LCDSTRUCT.Temperature,"");
-    strcpy(LCDSTRUCT.TimeNow,"");
-
-}
-
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- ** 函数名称: LCDUpdate
- ** 功能描述: 刷新LCD
- ** 参数描述：无
- ** 作  　者: Dream
- ** 日　  期: 2011年6月20日
- :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-void LCDUpdate(char stype)
-{
-    char Name_Array[64];
-    char UserID_Array[64];
-    char UdiskInfo_Array2[64];
-    char PhoneNum_Array[64];
-    char UdiskInfo_Array[64];
-    char UdiskState_Array[64];
-    char Temperature_Array[64];
-    char TimeNow_Array[64];
-
-    switch(stype)
-    {
-        case 'a':
-            {
-                strcpy(Name_Array,"DS16(100,24,'");
-                strcat(Name_Array,LCDSTRUCT.Name);
-                strcat(Name_Array,"',4);");
-
-                strcpy(UserID_Array,"DS16(100,48,'");
-                strcat(UserID_Array,LCDSTRUCT.UserID);
-                strcat(UserID_Array,"',4);");
-
-                strcpy(PhoneNum_Array,"DS16(100,72,'");
-                strcat(PhoneNum_Array,LCDSTRUCT.PhoneNum);
-                strcat(PhoneNum_Array,"',4);");
-
-                strcpy(UdiskInfo_Array,"DS16(80,96,'");
-                strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);
-                strcat(UdiskInfo_Array,"',4);");
-
-                strcpy(UdiskInfo_Array2,"DS16(200,96,'");
-                strcat(UdiskInfo_Array2,LCDSTRUCT.UdiskInfo2);
-                strcat(UdiskInfo_Array2,"',4);");
-
-                strcpy(UdiskState_Array,"DS16(100,120,'");
-                strcat(UdiskState_Array,LCDSTRUCT.UdiskState);
-                strcat(UdiskState_Array,"',4);");
-
-                strcpy(Temperature_Array,"DS16(100,144,'");
-                strcat(Temperature_Array,LCDSTRUCT.Temperature);
-                strcat(Temperature_Array,"',4);");
-
-                strcpy(TimeNow_Array,"DS16(100,168,'");
-                strcat(TimeNow_Array,LCDSTRUCT.TimeNow);
-                strcat(TimeNow_Array,"',4);");
-
-                Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
-                Lcd_Display("CLS(0);DS16(100,0,'SITP U盘管理系统',16);");
-                Lcd_Display("DS16(4,24,'姓名：',15);");
-                Lcd_Display(Name_Array);
-                Lcd_Display("DS16(4,48,'卡号：',4);");
-                Lcd_Display(UserID_Array);
-                Lcd_Display("DS16(4,72,'联系电话：',15);");
-                Lcd_Display(PhoneNum_Array);
-                Lcd_Display("DS16(4,96,'U盘信息：',4);");
-                Lcd_Display(UdiskInfo_Array);Lcd_Display(UdiskInfo_Array2);
-                Lcd_Display("DS16(4,120,'借/还状态：',4);");
-                Lcd_Display(UdiskState_Array);
-                Lcd_Display("DS16(4,144,'室内温度：',15);");
-                Lcd_Display(Temperature_Array);
-                Lcd_Display("DS16(4,168,'日期/时间：',15);");
-                Lcd_Display(TimeNow_Array);
-            } break;
-        case 'n':
-            {
-                strcpy(Name_Array,"DS16(100,24,'");
-                strcat(Name_Array,LCDSTRUCT.Name);
-                strcat(Name_Array,"',4);");
-                Lcd_Display("CLS(0);DS16(100,0,'SITP U盘管理系统',16);");
-                Lcd_Display(Name_Array);
-            }break;
-        case 'u':
-            {
-                strcpy(UserID_Array,"DS16(100,48,'");
-                strcat(UserID_Array,LCDSTRUCT.UserID);
-                strcat(UserID_Array,"',4);");
-                Lcd_Display(UserID_Array);
-                HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
-            }break;
-        case 'p':
-            {
-                strcpy(PhoneNum_Array,"DS16(100,72,'");
-                strcat(PhoneNum_Array,LCDSTRUCT.PhoneNum);
-                strcat(PhoneNum_Array,"',4);");
-                Lcd_Display(PhoneNum_Array);
-            }break;
-        case 'i':
-            {
-                strcpy(UdiskInfo_Array,"DS16(100,96,'");
-                strcat(UdiskInfo_Array,LCDSTRUCT.UdiskInfo);
-                strcat(UdiskInfo_Array,"',4);");
-                Lcd_Display(UdiskInfo_Array);
-            }break;
-        case 's':
-            {
-                strcpy(UdiskState_Array,"DS16(100,120,'");
-                strcat(UdiskState_Array,LCDSTRUCT.UdiskState);
-                strcat(UdiskState_Array,"',4);");
-                Lcd_Display(UdiskState_Array);
-            }break;
-        case 't':
-            {
-                strcpy(Temperature_Array,"DS16(100,144,'");
-                strcat(Temperature_Array,LCDSTRUCT.Temperature);
-                strcat(Temperature_Array,"',4);");
-                Lcd_Display(Temperature_Array);
-            }break;
-        case 'd':
-            {
-                strcpy(TimeNow_Array,"DS16(100,168,'");
-                strcat(TimeNow_Array,LCDSTRUCT.TimeNow);
-                strcat(TimeNow_Array,"',4);");
-                Lcd_Display(TimeNow_Array);
-            }break;
-        case 'e':
-            {
-                Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
-                Lcd_Display("CLS(0);DS16(100,0,'SITP U盘管理系统',16);");
-            }break;
-    }
-}
-
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- ** 函数名称: uchar2str
- ** 功能描述: 刷新LCD
- ** 参数描述：无
- ** 作  　者: cuikun
- ** 日　  期: 2011年6月20日
- :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-void uchar2str(unsigned char i,unsigned char * strname)
-{
-    unsigned j,k,m=0;
-    k=i/100;
-    if(k>0) {strname[m++]=k+0x30;}
-
-    k=(i-k*100)/10;
-    if(k>0) {strname[m++]=k+0x30;}
-
-    k=i%10;
-    if(k>0) {strname[m++]=k+0x30;}
-
-    strname[m]='\0';
-}
-
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- ** 函数名称: LCDShowUpanState
- ** 功能描述: 刷新LCD
- ** 参数描述：无
- ** 作  　者: cuikun
- ** 日　  期: 2011年6月20日
- :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-int LCDShowUpanState(unsigned char * filename)
-{
-    char space[4]="  ";
-    char norm[6]="正常";
-    char borrow[6]="借出";
-    char strtmp[30]="";
-    char Uinfolist[64]="";
-    unsigned char namearray[10]="";
-    unsigned char serialarray[11]="";
-    BYTE upantemp[40];
-    char firstline[20]="";
-
-    unsigned char i,j=0;
-    unsigned char pos[4]="";
-
-
-    br=1;
-    i=0;j=0;
-
-    Lcd_Display("DR2;CLS(0);SPG(1);\r\n");
-    Lcd_Display("CLS(0);DS16(100,0,'SITP U盘管理系统',16);");
-
-    res=f_open(&fdrd, filename, FA_OPEN_EXISTING | FA_READ);
-    if(res)
-    {
-        /*printf("not open"); //TODO*/
-        return -1;
-    }
-    for(;;)
-    {
-        res = f_read( &fdrd, filetemp, upanstrall, &br );
-        if (res||br<upanstrall) break;
-        else
-        {
-            if (filetemp[18]=='0')
-            {
-                memcpy(strtmp,filetemp+12,5);
-                memcpy(strtmp+5,space,2);
-                memcpy(strtmp+7,norm,4);
-                strtmp[11]='\0';
-                /*printf(strtmp);printf("\r\n"); //TODO*/
-
-            }
-            else if(filetemp[18]=='1')
-            {
-                memcpy(upantemp,filetemp,40);
-                memcpy(serialarray,filetemp+20,10);serialarray[10]='\0';
-
-                checkserial(userfilename,serialarray,namearray);
-
-                memcpy(strtmp,upantemp+12,5);
-                memcpy(strtmp+5,space,2);
-                memcpy(strtmp+7,borrow,4);
-                memcpy(strtmp+11,space,2);
-                strtmp[13]='\0';
-                strcat(strtmp,namearray);
-                /*printf(strtmp);printf("\r\n");*/ //TODO
-
-            }
-            i++;
-            j=i*24;
-            uchar2str(j,pos);
-            strcpy(Uinfolist,"DS16(100,");
-            /*printf(Uinfolist);*/
-            strcat(Uinfolist,pos);
-            /*printf(Uinfolist);*/
-            strcat(Uinfolist,",'");
-            /*printf(Uinfolist);*/
-            strcat(Uinfolist,strtmp);
-            /*printf(Uinfolist);*/
-            strcat(Uinfolist,"',16);");
-            /*printf(Uinfolist);printf("\r\n");*/
-
-            strcpy(firstline,"DS16(4,");
-            strcat(firstline,pos);
-            strcat(firstline,",'姓名：',16);");
-            /*printf(firstline);printf("\r\n");*/
-            Lcd_Display(firstline);
-            Lcd_Display(Uinfolist);
-
-        }
-    }
-    f_close(&fdrd);
-    return 0;
-}
-
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- ** 函数名称: checkserial
- ** 功能描述: 通过rfid读出对应的名字
- ** 参数描述：无
- ** 作  　者: cuikun
- ** 日　  期: 2015年7月19日
- :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-int checkserial(unsigned char * filename,unsigned char * serialarraycheck,unsigned char * namearray)
-{
-
-    unsigned char namelen=0;
-    unsigned char serialarray[10]="";
-
-    unsigned int j,k,m=0;
-    unsigned char check_flag=0;
-
-    br=1;
-
-
-
-    res=f_open(&fdrd,filename, FA_OPEN_EXISTING | FA_READ);
-    /*printf("3 "); //TODO*/
-    if(res)
-    {
-        /*printf("not open"); //TODO*/
-        return -1;
-    }
-    /*printf("4 "); //TODO*/
-    for(;;)
-    {
-        res = f_read( &fdrd, filetemp, strall, &br );
-        /*printf("%02x ",res); //TODO*/
-        if (res||br==0) break;
-        else
-        {
-            if (filetemp[0]=='@')
-            {
-                for(j=1;j<=serialnum;j++)
-                {
-                    serialarray[j-1]=filetemp[j];
-                    check_flag=serialarray[j-1]-serialarraycheck[j-1];
-                    if (check_flag) break;
-                }
-                if (!check_flag)
-                {
-                    for (k=j;k<strall;k++)
-                    {
-                        if ((filetemp[k]!=' ')&&(filetemp[k]!=0x0a) &&(filetemp[k]!=0x0d) )
-                        {
-                            namearray[m++]=filetemp[k];
-                            namelen++;
-
-                        }
-                    }
-                    namearray[m]='\0';
-                    return namelen;
-                }
-            }
-        }
-    }
-    /*printf("5 "); //TODO*/
-    f_close(&fdrd);
-    return 0;
-
-}
-
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- ** 函数名称: writelog
- ** 功能描述: 写入log日志文件
- ** 参数描述：无
- ** 作  　者: cuikun
- ** 日　  期: 2015年7月19日
- :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-int writelog(unsigned char * filename,unsigned char * filecontent,unsigned char lencont,unsigned char sflag )
-{
-    bw=1  ;
-
-    if(sflag==0)
-    {
-        res = f_open(&fdwr,filename,FA_CREATE_ALWAYS| FA_WRITE);
-        if(res)
-        {
-            /*printf("not open"); //TODO*/
-            return -1 ;
-        }
-    }
-    else if(sflag==1)
-    {
-        res = f_open(&fdwr,filename,FA_OPEN_ALWAYS| FA_WRITE);
-        if(res)
-        {
-            /*printf("not open"); //TODO*/
-            return -1 ;
-        }
-        f_lseek(&fdwr,fdwr.fsize);
-    }
-
-    res = f_write(&fdwr, filecontent, lencont, &bw);
-    /*if(res)*/
-    /*    printf("write error!\n"); //TODO*/
-    f_close(&fdwr);
-
-    return 0;
-}
-
-/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- ** 函数名称: writelog
- ** 功能描述: 写入log日志文件
- ** 参数描述：无
- ** 作  　者: cuikun
- ** 日　  期: 2015年7月19日
- :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-int printallfile(unsigned char * filename )
-{
-    unsigned int plen;
-    br=1;
-
-    res=f_open(&fdrd,filename, FA_OPEN_EXISTING | FA_READ);
-    if(res)
-    {
-        /*printf("not open"); //TODO*/
-        return -1;
-    }
-
-    if(gflag_send==0)
-    {
-        res =f_read( &fdrd, filetemp, strall, &br );
-        if (res||br==0)
-        {
-            gflag_send=2;
-            return -2;
-        }
-        else
-        {
-            if(br<strall)
-            {
-                filetemp[br]='\0';
-                gflag_send=2;
-            }
-            else
-            {
-                filetemp[strall]='\0';
-                gflag_send=1;
-            }
-            send_count+=strall;
-            plen=fill_tcp_data_p(buf,0,filetemp);
-            SendTcp(plen);
-            /*printf("%d\r\n",gflag_send);*/ //TODO
-            /*printf(filetemp);printf("\r\n");*/
-
-        }
-    }
-    else if(gflag_send==1)
-    {
-        f_lseek(&fdrd,send_count);
-        res =f_read( &fdrd, filetemp, strall, &br );
-        if (res||br==0)
-        {
-            gflag_send=2;
-            return -2;
-        }
-        else
-        {
-            if(br<strall)
-            {
-                filetemp[br]='\0';
-                gflag_send=2;
-            }
-            else
-            {
-                filetemp[strall]='\0';
-                gflag_send=1;
-            }
-            send_count+=strall;
-            plen=fill_tcp_data_p(buf,0,filetemp);
-            SendTcp(plen);
-            /*printf("%d\r\n",gflag_send);*/ //TODO
-            /*printf(filetemp);printf("\r\n");*/
-
-        }
-    }
-    else if(gflag_send==2)
-    {
-        plen=fill_tcp_data_p(buf,0,"lend");
-        SendTcp(plen);
-        /*printf("%d\r\n",gflag_send); //TODO*/
-        //printf(filetemp);
-
-    }
-
-    f_close(&fdrd);
-    return 0;
-}
-
-static void Error_Handler(void)
-{
-    while(1)
-    {
-        __NOP();
-    }
+    USART_SendByte( &RFIDUART_Handle, 0x7F);
 }
 

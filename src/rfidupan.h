@@ -3,8 +3,9 @@
 
 //头文件包含
 #include "stdio.h"
-#include <string.h>
-#include <stm32f1xx_hal.h>
+#include "string.h"
+
+#include "stm32f1xx_hal.h"
 //////////////////////////////////
 //端口定义
 /////////////////////////////////////////////////////////////////////
@@ -54,37 +55,36 @@
 /////////////////////////////////////////////////////////////////////
 
 
-extern char PcdReset(void);
-extern void PcdAntennaOn(void);
-extern void PcdAntennaOff(void);
-extern char PcdRequest(unsigned char req_code,unsigned char *pTagType);
-extern char PcdAnticoll(unsigned char *pSnr);
-extern char PcdSelect(unsigned char *pSnr);
-extern char PcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr);
-extern char PcdRead(unsigned char addr,unsigned char *pData);
-extern char PcdWrite(unsigned char addr,unsigned char *pData);
-extern char PcdValue(unsigned char dd_mode,unsigned char addr,unsigned char *pValue);
-extern char PcdBakValue(unsigned char sourceaddr, unsigned char goaladdr);
-extern char PcdHalt(void);
-extern char PcdComMF522(unsigned char Command,
-                 unsigned char *pInData,
-                 unsigned char InLenByte,
-                 unsigned char *pOutData,
-                 unsigned int  *pOutLenBit);
-extern void CalulateCRC(unsigned char *pIndata,unsigned char len,unsigned char *pOutData);
-extern void WriteRawRC(unsigned char Address,unsigned char value);
-extern unsigned char ReadRawRC(unsigned char Address);
-extern void SetBitMask(unsigned char reg,unsigned char mask);
-extern void ClearBitMask(unsigned char reg,unsigned char mask);
-extern char M500PcdConfigISOType(unsigned char type);
-extern void delay_10ms(unsigned int _10ms);
-extern void WaitCardOff(void);
-extern void ncs_l(void);
-extern void ncs_h(unsigned char cs);
-extern void ncs(unsigned char cse);
- void Init_RfidUpan_GPIO(void);
- void Init_RfidUpan(void);
+char PcdReset(void);
+void PcdAntennaOn(void);
+void PcdAntennaOff(void);
+char PcdRequest(unsigned char req_code,unsigned char *pTagType);
+char PcdAnticoll(unsigned char *pSnr);
+char PcdSelect(unsigned char *pSnr);
+char PcdAuthState(unsigned char auth_mode,unsigned char addr,unsigned char *pKey,unsigned char *pSnr);
+char PcdRead(unsigned char addr,unsigned char *pData);
+char PcdWrite(unsigned char addr,unsigned char *pData);
+char PcdValue(unsigned char dd_mode,unsigned char addr,unsigned char *pValue);
+char PcdBakValue(unsigned char sourceaddr, unsigned char goaladdr);
+char PcdHalt(void);
+char PcdComMF522(unsigned char Command,
+          unsigned char *pInData,
+          unsigned char InLenByte,
+          unsigned char *pOutData,
+          unsigned int  *pOutLenBit);
+void CalulateCRC(unsigned char *pIndata,unsigned char len,unsigned char *pOutData);
+void WriteRawRC(unsigned char Address,unsigned char value);
+unsigned char ReadRawRC(unsigned char Address);
+void SetBitMask(unsigned char reg,unsigned char mask);
+void ClearBitMask(unsigned char reg,unsigned char mask);
+char M500PcdConfigISOType(unsigned char type);
+void delay_10ms(unsigned int _10ms);
+void WaitCardOff(void);
+void ncs_l(void);
+void ncs_h(unsigned char cs);
+void ncs(unsigned char cse);
 
+void Init_RfidUpan(void);
 
 /////////////////////////////////////////////////////////////////////
 //MF522命令字

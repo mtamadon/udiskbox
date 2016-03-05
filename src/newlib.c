@@ -3,17 +3,12 @@
 #include <sys/times.h>
 #include <sys/unistd.h>
 #include <sys/time.h>
+#include <stdint.h>
 
-#if defined STM32F1
-# include <stm32f1xx_hal.h>
-#elif defined STM32F2
-# include <stm32f2xx_hal.h>
-#elif defined STM32F4
-# include <stm32f4xx_hal.h>
-#endif
+#include <stm32f1xx_hal.h>
 
 extern uint32_t __get_MSP(void);
-extern USART_HandleTypeDef ConsoleUSART_Handle;
+extern UART_HandleTypeDef Console_Handle;
 extern uint64_t virtualTimer;
 
 #undef errno
@@ -123,7 +118,7 @@ int _read(int file, char *ptr, int len)
     switch (file)
     {
     case STDIN_FILENO:
-        HAL_USART_Receive(&ConsoleUSART_Handle, (uint8_t *)ptr, 1, HAL_MAX_DELAY);
+        HAL_UART_Receive(&Console_Handle, (uint8_t *)ptr, 1, HAL_MAX_DELAY);
         return 1;
     default:
         errno = EBADF;
@@ -159,10 +154,26 @@ int _write(int file, char *ptr, int len)
     switch (file)
     {
     case STDOUT_FILENO: /*stdout*/
-        HAL_USART_Transmit(&ConsoleUSART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+        HAL_UART_Transmit(&Console_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+        /*
+         *while(len)
+         *{
+         *    ITM_SendChar(*ptr);
+         *    ptr++;
+         *    len--;
+         *}
+         */
         break;
     case STDERR_FILENO: /* stderr */
-        HAL_USART_Transmit(&ConsoleUSART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+        HAL_UART_Transmit(&Console_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+        /*
+         *while(len)
+         *{
+         *    ITM_SendChar(*ptr);
+         *    ptr++;
+         *    len--;
+         *}
+         */
         break;
     default:
         errno = EBADF;

@@ -15,7 +15,7 @@
  *
  * 作者    ：fire  QQ: 313303034
  * 博客    ：firestm32.blog.chinaunix.net
-**********************************************************************************/
+ **********************************************************************************/
 #include "enc28j60.h"
 #include "ip_arp_udp_tcp.h"
 #include "net.h"
@@ -122,22 +122,22 @@ unsigned char analyse_get_url(char *str)
 unsigned int print_webpage(unsigned char *buf,unsigned char on_off)
 {
     unsigned int plen;
-		/* 新建一个网页，就像新建一个文件一样 */
+    /* 新建一个网页，就像新建一个文件一样 */
     plen=fill_tcp_data_p(buf,0,PSTR("HTTP/1.0 200 OK\r\nContent-Type: text/html\r\nPragma: no-cache\r\n\r\n"));
 
-		/* 在网页正中央填写信息 */
+    /* 在网页正中央填写信息 */
     plen=fill_tcp_data_p(buf,plen,PSTR("<center><p> 当前U盘状态: <p>"));
 
 
 
     plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置1：:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置2：:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置3：:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置4：:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置5：:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置6：:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置7：:"));
-	  plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置8：:"));
+    plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置2：:"));
+    plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置3：:"));
+    plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置4：:"));
+    plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置5：:"));
+    plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置6：:"));
+    plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置7：:"));
+    plen=fill_tcp_data_p(buf,plen,PSTR(" <br>位置8：:"));
 
 
 
@@ -159,17 +159,17 @@ unsigned int print_webpage(unsigned char *buf,unsigned char on_off)
 
 void SetIpMac()
 {
-	/* 初始化 enc28j60 的MAC地址(物理地址),这个函数必须要调用一次 */
-  enc28j60Init(mymac);
+    /* 初始化 enc28j60 的MAC地址(物理地址),这个函数必须要调用一次 */
+    enc28j60Init(mymac);
 
-	/* PHY LED 配置,LED用来指示通信的状态 */
-  enc28j60PhyWrite(PHLCON,0x476);
+    /* PHY LED 配置,LED用来指示通信的状态 */
+    enc28j60PhyWrite(PHLCON,0x476);
 
-	/* 将enc28j60第三引脚的时钟输出改为：from 6.25MHz to 12.5MHz(本例程该引脚NC,没用到) */
-  //enc28j60clkout(2);
+    /* 将enc28j60第三引脚的时钟输出改为：from 6.25MHz to 12.5MHz(本例程该引脚NC,没用到) */
+    //enc28j60clkout(2);
 
-	/* 初始化以太网 IP 层 */
-	init_ip_arp_udp_tcp(mymac,myip,mywwwport);
+    /* 初始化以太网 IP 层 */
+    init_ip_arp_udp_tcp(mymac,myip,mywwwport);
 
 }
 
@@ -182,8 +182,8 @@ void SetIpMac()
  */
 void SendTcp(unsigned int plen)
 {
-              make_tcp_ack_from_any(buf);       // send ack for http get
-              make_tcp_ack_with_data(buf,plen); // send data
+    make_tcp_ack_from_any(buf);       // send ack for http get
+    make_tcp_ack_with_data(buf,plen); // send data
 
 }
 
@@ -201,120 +201,120 @@ void SendTcp(unsigned int plen)
  */
 int Web_Server(void)
 {
-	unsigned int plen, i1 = 0;
-	unsigned int dat_p;
-	unsigned char  *buf1;
-	unsigned int payloadlen = 0;
+    unsigned int plen, i1 = 0;
+    unsigned int dat_p;
+    unsigned char  *buf1;
+    unsigned int payloadlen = 0;
 
-			// get the next new packet:
-      plen = enc28j60PacketReceive(BUFFER_SIZE, buf);
+    // get the next new packet:
+    plen = enc28j60PacketReceive(BUFFER_SIZE, buf);
 
-      // plen will ne unequal to zero if there is a valid packet (without crc error)
-      if(plen==0)
-      {
-          return (0);
-      }
+    // plen will ne unequal to zero if there is a valid packet (without crc error)
+    if(plen==0)
+    {
+        return (0);
+    }
 
-      // arp is broadcast if unknown but a host may also
-      // verify the mac address by sending it to
-      // a unicast address.
-      if(eth_type_is_arp_and_my_ip(buf,plen))
-      {
-          make_arp_answer_from_request(buf);
-          return (0);
-      }
+    // arp is broadcast if unknown but a host may also
+    // verify the mac address by sending it to
+    // a unicast address.
+    if(eth_type_is_arp_and_my_ip(buf,plen))
+    {
+        make_arp_answer_from_request(buf);
+        return (0);
+    }
 
-      // check if ip packets are for us:
-      if(eth_type_is_ip_and_my_ip(buf,plen)==0)
-      {
-         return (0);
-      }
+    // check if ip packets are for us:
+    if(eth_type_is_ip_and_my_ip(buf,plen)==0)
+    {
+        return (0);
+    }
 
-      if(buf[IP_PROTO_P]==IP_PROTO_ICMP_V && buf[ICMP_TYPE_P]==ICMP_TYPE_ECHOREQUEST_V)
-      {
-          // a ping packet, let's send pong  DOS 下的 ping 命令包
-          make_echo_reply_from_request(buf, plen);
-          return (0);
-      }
+    if(buf[IP_PROTO_P]==IP_PROTO_ICMP_V && buf[ICMP_TYPE_P]==ICMP_TYPE_ECHOREQUEST_V)
+    {
+        // a ping packet, let's send pong  DOS 下的 ping 命令包
+        make_echo_reply_from_request(buf, plen);
+        return (0);
+    }
 
-/*-----------------tcp port www start, compare only the lower byte-----------------------------------*/
-      if (buf[IP_PROTO_P]==IP_PROTO_TCP_V&&buf[TCP_DST_PORT_H_P]==0&&buf[TCP_DST_PORT_L_P]==mywwwport)
-      {
-          if (buf[TCP_FLAGS_P] & TCP_FLAGS_SYN_V)
-          {
-              make_tcp_synack_from_syn(buf);
-              // make_tcp_synack_from_syn does already send the syn,ack
-             return (0);
-          }
-          if (buf[TCP_FLAGS_P] & TCP_FLAGS_ACK_V)
-          {
-              init_len_info(buf); // init some data structures
-              // we can possibly have no data, just ack:
-              dat_p=get_tcp_data_pointer();
-              if (dat_p==0)
-              {
-                  if (buf[TCP_FLAGS_P] & TCP_FLAGS_FIN_V)
-                  {
-                      // finack, answer with ack
-                      make_tcp_ack_from_any(buf);
-                  }
-                  // just an ack with no data, wait for next packet
-                 return (0);
-              }
-							if (strncmp("user",(char *)&(buf[dat_p]),4)==0)
-              {
-
-								  lenind=buf[dat_p+4]*256;
-								  lenind+=buf[dat_p+5];
-								  memcpy(indarray,buf+dat_p+4+2,lenind);
-								  // glflag=1;   //写入用户名
-								  writelog("0:/test.txt",indarray,lenind,1);
-								  indarray[lenind]='\0';
-								  plen=fill_tcp_data_p(buf,0,indarray);
-                  SendTcp(plen);
-								  return (0);
-              }
-							if (strncmp("logr",(char *)&(buf[dat_p]),4)==0) //读取log日志
-              {
-
-
-								  printallfile("0:/test.txt");
-								  return (0);
-              }
-							if (strncmp("logs",(char *)&(buf[dat_p]),4)==0) //初次读取log日志
-              {
-								  gflag_send=0;
-								  send_count=0;
-								  return (0);
-              }
-
-
-          //  plen=print_webpage(buf,(i));
-          //  make_tcp_ack_from_any(buf);       // send ack for http get
-          //  make_tcp_ack_with_data(buf,plen); // send data
+    /*-----------------tcp port www start, compare only the lower byte-----------------------------------*/
+    if (buf[IP_PROTO_P]==IP_PROTO_TCP_V&&buf[TCP_DST_PORT_H_P]==0&&buf[TCP_DST_PORT_L_P]==mywwwport)
+    {
+        if (buf[TCP_FLAGS_P] & TCP_FLAGS_SYN_V)
+        {
+            make_tcp_synack_from_syn(buf);
+            // make_tcp_synack_from_syn does already send the syn,ack
             return (0);
-          }
-      }
-/*-------------------------------------- tcp port www end ---------------------------------------*/
+        }
+        if (buf[TCP_FLAGS_P] & TCP_FLAGS_ACK_V)
+        {
+            init_len_info(buf); // init some data structures
+            // we can possibly have no data, just ack:
+            dat_p=get_tcp_data_pointer();
+            if (dat_p==0)
+            {
+                if (buf[TCP_FLAGS_P] & TCP_FLAGS_FIN_V)
+                {
+                    // finack, answer with ack
+                    make_tcp_ack_from_any(buf);
+                }
+                // just an ack with no data, wait for next packet
+                return (0);
+            }
+            if (strncmp("user",(char *)&(buf[dat_p]),4)==0)
+            {
 
-/*--------------------- udp start, we listen on udp port 1200=0x4B0 -----------------------------*/
-      if (buf[IP_PROTO_P]==IP_PROTO_UDP_V&&buf[UDP_DST_PORT_H_P]==4&&buf[UDP_DST_PORT_L_P]==0xb0)
-      {
-          payloadlen=	  buf[UDP_LEN_H_P];
-          payloadlen=payloadlen<<8;
-          payloadlen=(payloadlen+buf[UDP_LEN_L_P])-UDP_HEADER_LEN;
-          //payloadlen=buf[UDP_LEN_L_P]-UDP_HEADER_LEN;
+                lenind=buf[dat_p+4]*256;
+                lenind+=buf[dat_p+5];
+                memcpy(indarray,buf+dat_p+4+2,lenind);
+                // glflag=1;   //写入用户名
+                writelog("0:/test.txt",indarray,lenind,1);
+                indarray[lenind]='\0';
+                plen=fill_tcp_data_p(buf,0,indarray);
+                SendTcp(plen);
+                return (0);
+            }
+            if (strncmp("logr",(char *)&(buf[dat_p]),4)==0) //读取log日志
+            {
 
-          //ANSWER:
-          //while(1){
-          for(i1=0; i1<payloadlen; i1++) buf1[i1]=buf[UDP_DATA_P+i1];
-				//printf("%s",buf);
 
-          make_udp_reply_from_request(buf,buf1,payloadlen,myudpport);
-          //}
-      }
-/*----------------------------------------udp end -----------------------------------------------*/
+                printallfile("0:/test.txt");
+                return (0);
+            }
+            if (strncmp("logs",(char *)&(buf[dat_p]),4)==0) //初次读取log日志
+            {
+                gflag_send=0;
+                send_count=0;
+                return (0);
+            }
 
-          return (0);
+
+            //  plen=print_webpage(buf,(i));
+            //  make_tcp_ack_from_any(buf);       // send ack for http get
+            //  make_tcp_ack_with_data(buf,plen); // send data
+            return (0);
+        }
+    }
+    /*-------------------------------------- tcp port www end ---------------------------------------*/
+
+    /*--------------------- udp start, we listen on udp port 1200=0x4B0 -----------------------------*/
+    if (buf[IP_PROTO_P]==IP_PROTO_UDP_V&&buf[UDP_DST_PORT_H_P]==4&&buf[UDP_DST_PORT_L_P]==0xb0)
+    {
+        payloadlen=	  buf[UDP_LEN_H_P];
+        payloadlen=payloadlen<<8;
+        payloadlen=(payloadlen+buf[UDP_LEN_L_P])-UDP_HEADER_LEN;
+        //payloadlen=buf[UDP_LEN_L_P]-UDP_HEADER_LEN;
+
+        //ANSWER:
+        //while(1){
+        for(i1=0; i1<payloadlen; i1++) buf1[i1]=buf[UDP_DATA_P+i1];
+        //printf("%s",buf);
+
+        make_udp_reply_from_request(buf,buf1,payloadlen,myudpport);
+        //}
+    }
+    /*----------------------------------------udp end -----------------------------------------------*/
+
+    return (0);
 }
 

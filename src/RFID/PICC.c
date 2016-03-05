@@ -14,7 +14,7 @@
 PICC Picc;
 CMD Cmd;
 /* 本文件使用的函数声明 -------------------------------------------------------*/
-void SendCommand(void);
+extern void SendCommand(void);
 /* 本文件函数体 ---------------------------------------------------------------*/
 
 /*******************************************************************************
@@ -402,7 +402,6 @@ unsigned char CommandProcess(void)
                 Picc.UID |= Cmd.ReceiveBuffer[5];
                 Picc.UID <<= 8;
                 Picc.UID |= Cmd.ReceiveBuffer[6];
-
                 break;
             case 0x05:
                 //nothing to do

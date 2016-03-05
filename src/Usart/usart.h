@@ -15,5 +15,6 @@ void Usart_Configuration(USART_TypeDef * USART_X, uint32_t BaudRate);
 void Lcd_Display(char * buf1);
 
 HAL_StatusTypeDef USART_SendByte(USART_HandleTypeDef *p_USARTHandle, uint8_t DATA);
+HAL_StatusTypeDef UART_SendByte(UART_HandleTypeDef *p_UARTHandle, uint8_t DATA);
 
 #endif

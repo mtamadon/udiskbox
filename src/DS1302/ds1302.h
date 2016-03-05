@@ -1,7 +1,7 @@
 #ifndef DS1302_H
 #define DS1302_H
 
-#include <inttypes.h>
+#include "stdint.h"
 
 extern void InitClock(void);
 extern void ReadDS1302Clock(uint8_t *p);
